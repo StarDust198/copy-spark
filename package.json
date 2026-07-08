@@ -1,6 +1,6 @@
 {
   "name": "starter-template",
-  "version": "0.1.0",
+  "version": "env",
   "private": true,
   "scripts": {
     "dev": "next dev",

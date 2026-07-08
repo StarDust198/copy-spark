@@ -19,14 +19,20 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AI Chat app",
-  description: "AI Chat application with model selection, streaming",
+  title: {
+    default: "CopySpark — AI marketing copy generator",
+    template: "%s · CopySpark", // child pages: "History · CopySpark"
+  },
+  description:
+    "Generate ad headlines, product descriptions, and email subject lines in seconds. Pick a template, describe your product, get 5 ready-to-use variants.",
   openGraph: {
-    title: "AI Chat app",
-    description: "AI Chat application with model selection, streaming",
+    title: "CopySpark — AI marketing copy generator",
+    description:
+      "Pick a template, describe your product, get 5 ready-to-use copy variants. Built with Next.js and the Vercel AI SDK.",
     // images: "",
     // url: "",
     type: "website",
+    siteName: "CopySpark",
   },
 };
 

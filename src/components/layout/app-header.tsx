@@ -16,17 +16,17 @@ export type AppHeaderProps = {
 
 export function AppHeader({ className }: AppHeaderProps) {
   const pathname = usePathname();
-  const { data: chats } = useQuery(chatsOptions());
+  // const { data: chats } = useQuery(chatsOptions());
 
-  const title = useMemo(() => {
-    const match = pathname.match(/^\/chat\/([^/]+)$/);
+  // const title = useMemo(() => {
+  //   const match = pathname.match(/^\/chat\/([^/]+)$/);
 
-    if (!match) return titleByUrl[pathname];
+  //   if (!match) return titleByUrl[pathname];
 
-    const chatId = match[1];
+  //   const chatId = match[1];
 
-    return chats?.find((chat) => chat.id === chatId)?.title ?? NEW_CHAT_TITLE;
-  }, [chats, pathname]);
+  //   return chats?.find((chat) => chat.id === chatId)?.title ?? NEW_CHAT_TITLE;
+  // }, [chats, pathname]);
 
   return (
     <div
@@ -34,7 +34,9 @@ export function AppHeader({ className }: AppHeaderProps) {
     >
       <SidebarTrigger className="shrink-0" />
 
-      <h1 className="text-2xl font-medium grow truncate min-w-0">{title}</h1>
+      <h1 className="text-2xl font-medium grow truncate min-w-0">
+        {titleByUrl[pathname]}
+      </h1>
 
       <ThemeSwitcher />
 

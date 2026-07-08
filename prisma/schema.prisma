@@ -1,8 +1,5 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 datasource db {
   provider  = "postgresql"
 }
@@ -11,13 +8,29 @@ generator client {
   provider = "prisma-client-js"
 }
 
-model Chat {
-  id        String   @id @default(cuid())
-  userId    String
-  title     String   @default("New chat")
-  messages  Json     @default("[]")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+// Deliberate decision here: input and output as Json, not separate columns. Each template has different fields,
+// so I'm dropping a rigid schema for now. This is a pragmatic v1 choice - should be mentioned in Readme
 
-  @@index([userId])
+model Generation {
+  id           String   @id @default(cuid())
+  userId       String                    // Clerk user id
+  templateSlug String                    // "facebook-ad", "product-description"
+  input        Json                      // the form values as submitted
+  output       Json                      // array of generated variants
+  model        String                    // "gpt-4o-mini", "claude-sonnet-4-6"
+  favorite     Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  @@index([userId, createdAt])
 }
+
+// model Chat {
+//   id        String   @id @default(cuid())
+//   userId    String
+//   title     String   @default("New chat")
+//   messages  Json     @default("[]")
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
+
+//   @@index([userId])
+// }

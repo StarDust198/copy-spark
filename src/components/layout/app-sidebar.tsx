@@ -24,6 +24,7 @@ import {
 } from "@heroicons/react/24/outline";
 import {
   NEW_CHAT_TITLE,
+  privateRoutes,
   publicRoutes,
   RouteData,
   RouteKey,
@@ -38,7 +39,7 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { Button } from "../ui/button";
-import { EllipsisVertical } from "lucide-react";
+import { EllipsisVertical, LayoutDashboardIcon } from "lucide-react";
 import { useDeleteChat } from "@/lib/query/use-chat-hooks";
 
 export type AppSidebarItem = {
@@ -54,26 +55,27 @@ export type AppSidebarProps = {
 const routeIconsMap: Record<RouteKey, ReactNode> = {
   signin: <ArrowRightEndOnRectangleIcon />,
   signup: <UserPlusIcon />,
+  dashboard: <LayoutDashboardIcon />,
 };
 
 export function AppSidebar() {
   const pathname = usePathname();
   const { state } = useSidebar();
-  const { data: chats } = useQuery(chatsOptions());
+  // const { data: chats } = useQuery(chatsOptions());
 
   const deleteChatMutation = useDeleteChat();
 
   const isExpanded = state === "expanded";
 
-  const isNewChatRoute = useMemo(() => {
-    const match = pathname.match(/^\/chat\/([^/]+)$/);
+  // const isNewChatRoute = useMemo(() => {
+  //   const match = pathname.match(/^\/chat\/([^/]+)$/);
 
-    if (!match) return false;
+  //   if (!match) return false;
 
-    const id = match[1];
+  //   const id = match[1];
 
-    return !chats?.map((chat) => chat.id).includes(id);
-  }, [chats, pathname]);
+  //   return !chats?.map((chat) => chat.id).includes(id);
+  // }, [chats, pathname]);
 
   const renderRouteGroup = (
     routeGroup: Partial<Record<RouteKey, RouteData>>,
@@ -101,9 +103,7 @@ export function AppSidebar() {
     <Sidebar variant="inset" collapsible="icon">
       <SidebarHeader>
         <div className="flex justify-between items-center">
-          {isExpanded && (
-            <h2 className="px-2 py-1 font-semibold">AI Chat App</h2>
-          )}
+          {isExpanded && <h2 className="px-2 py-1 font-semibold">CopySpark</h2>}
         </div>
       </SidebarHeader>
 
@@ -116,7 +116,9 @@ export function AppSidebar() {
               <Show when="signed-out">{renderRouteGroup(publicRoutes)}</Show>
 
               <Show when="signed-in">
-                <SidebarMenuItem>
+                {renderRouteGroup(privateRoutes)}
+
+                {/* <SidebarMenuItem>
                   <SidebarMenuButton
                     tooltip={NEW_CHAT_TITLE}
                     isActive={isNewChatRoute}
@@ -128,7 +130,7 @@ export function AppSidebar() {
                       </Link>
                     }
                   />
-                </SidebarMenuItem>
+                </SidebarMenuItem> */}
 
                 <SidebarMenuItem>
                   <SidebarMenuButton
@@ -156,7 +158,7 @@ export function AppSidebar() {
 
             <SidebarGroupContent className="flex flex-col grow min-h-0 gap-0.5 px-1 overflow-hidden hover:overflow-y-auto">
               <SidebarMenu>
-                {chats?.map((chat) => {
+                {/* {chats?.map((chat) => {
                   const chatUrl = `/chat/${chat.id}`;
                   const isActiveChat = pathname === chatUrl;
 
@@ -203,7 +205,7 @@ export function AppSidebar() {
                       )}
                     </SidebarMenuItem>
                   );
-                })}
+                })} */}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
