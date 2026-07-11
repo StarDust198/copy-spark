@@ -1,0 +1,243 @@
+"use server";
+
+import { prisma } from "@/lib/prisma";
+import { Generation } from "@prisma/client";
+import { generateText, Output } from "ai";
+// import { anthropic } from "@ai-sdk/anthropic";
+// import { metadataSchema, MyUIMessage } from "@/types/generation";
+// import { tools } from "../tools";
+import { redirect } from "next/navigation";
+import { auth } from "@clerk/nextjs/server";
+import {
+  ProductDescriptionRequest,
+  ProductDescriptionVariant,
+  productDescriptionVariantSchema,
+} from "@/schemas/description-schema";
+import {
+  EmailSubjectRequest,
+  EmailSubjectVariant,
+  emailSubjectVariantSchema,
+} from "@/schemas/email-schema";
+import {
+  FacebookAdRequest,
+  FacebookAdVariant,
+  facebookAdVariantSchema,
+} from "@/schemas/facebook-schema";
+import { TemplateId } from "@/constants/templates";
+import z from "zod";
+import {
+  createEmailSubjectPrompt,
+  createFacebookAdPrompt,
+  createProductDescriptionPrompt,
+} from "../prompts";
+
+const model = "anthropic/claude-haiku-4.5";
+
+async function getUserId() {
+  const { userId, isAuthenticated } = await auth();
+
+  if (!isAuthenticated) {
+    redirect("/signin");
+  }
+
+  return userId;
+}
+
+// export async function createGenerationTitle(
+//   textToSummarize: string,
+// ): Promise<string> {
+//   const { text } = await generateText({
+//     model: "anthropic/claude-haiku-4.5",
+//     system:
+//       "You are a precise text summarizer. Assume text provided is a first message of the user in a conversation and provide a concise, up to 4-5 words summary - title of the possible conversation. Do not add outside knowledge.",
+//     prompt: `Summarize the following text:\n\n${textToSummarize}`,
+//     output: Output.text(),
+//   });
+
+//   return text;
+// }
+
+async function generateVariants<TVariantSchema extends z.ZodType>({
+  prompt,
+  outputSchema,
+}: {
+  prompt: string;
+  outputSchema: TVariantSchema;
+}): Promise<{ title: string; variants: z.infer<TVariantSchema>[] }> {
+  const { output } = await generateText({
+    model,
+    system: `
+      You are an expert AI copywriting assistant specialized in high-converting digital marketing content. Your goal is to analyze the user's provided template data and generate compelling, persuasive, and platform-appropriate copy variations.
+    `,
+    prompt,
+    output: Output.object({
+      schema: z.object({
+        title: z.string(),
+        variants: z.array(outputSchema),
+      }),
+    }),
+  });
+
+  return output;
+}
+
+type GenerateArgs =
+  | { templateId: typeof TemplateId.facebookAd; request: FacebookAdRequest }
+  | { templateId: typeof TemplateId.emailSubject; request: EmailSubjectRequest }
+  | {
+      templateId: typeof TemplateId.productDescription;
+      request: ProductDescriptionRequest;
+    };
+
+// export async function saveGeneration({
+//   generationId,
+//   messages,
+// }: {
+//   generationId: string;
+//   messages: MyUIMessage[];
+// }): Promise<Generation> {
+//   const userId = await getUserId();
+
+//   const JSONMessages = JSON.stringify(messages, null, 2);
+
+//   return await prisma.generation.update({
+//     where: {
+//       id: generationId,
+//       userId,
+//     },
+//     data: {
+//       messages: JSONMessages,
+//     },
+//   });
+// }
+
+async function createDBGeneration({
+  userId,
+  request,
+  variants,
+  title,
+  templateId,
+}: {
+  userId: string;
+  title: string;
+  request: FacebookAdRequest | EmailSubjectRequest | ProductDescriptionRequest;
+  variants:
+    | FacebookAdVariant[]
+    | EmailSubjectVariant[]
+    | ProductDescriptionVariant[];
+  templateId: TemplateId;
+}) {
+  return await prisma.generation.create({
+    data: {
+      userId,
+      model,
+      input: JSON.stringify(request),
+      output: JSON.stringify(variants),
+      title,
+      templateId,
+    },
+  });
+}
+
+export async function createGeneration(
+  options: GenerateArgs,
+): Promise<Generation> {
+  const userId = await getUserId();
+
+  switch (options.templateId) {
+    case TemplateId.facebookAd: {
+      const { title, variants } = await generateVariants({
+        prompt: createFacebookAdPrompt(options.request),
+        outputSchema: facebookAdVariantSchema,
+      });
+
+      return await createDBGeneration({
+        title,
+        userId,
+        variants,
+        templateId: options.templateId,
+        request: options.request,
+      });
+    }
+
+    case TemplateId.productDescription: {
+      const { title, variants } = await generateVariants({
+        prompt: createProductDescriptionPrompt(options.request),
+        outputSchema: productDescriptionVariantSchema,
+      });
+
+      return await createDBGeneration({
+        title,
+        userId,
+        variants,
+        templateId: options.templateId,
+        request: options.request,
+      });
+    }
+
+    case TemplateId.emailSubject: {
+      const { title, variants } = await generateVariants({
+        prompt: createEmailSubjectPrompt(options.request),
+        outputSchema: emailSubjectVariantSchema,
+      });
+
+      return await createDBGeneration({
+        title,
+        userId,
+        variants,
+        templateId: options.templateId,
+        request: options.request,
+      });
+    }
+  }
+}
+
+export async function getGeneration({
+  generationId,
+}: {
+  generationId: string;
+}): Promise<Generation | null> {
+  const userId = await getUserId();
+
+  const generation = await prisma.generation.findFirst({
+    where: {
+      id: generationId,
+      userId,
+    },
+  });
+
+  if (!generation) return null;
+
+  const output =
+    typeof generation.output === "string" ? JSON.parse(generation.output) : [];
+
+  return {
+    ...generation,
+    output,
+  };
+}
+
+export async function getGenerations(): Promise<Generation[]> {
+  const userId = await getUserId();
+
+  return await prisma.generation.findMany({
+    where: {
+      userId,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+}
+
+export async function deleteGeneration({
+  id,
+}: {
+  id: string;
+}): Promise<Generation> {
+  return await prisma.generation.delete({
+    where: {
+      id,
+    },
+  });
+}

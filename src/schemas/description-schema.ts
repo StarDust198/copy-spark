@@ -2,7 +2,7 @@ import { Length } from "@/constants/length";
 import { Tone } from "@/constants/tone";
 import z from "zod";
 
-export const descriptionSchema = z.object({
+export const productDescriptionRequestSchema = z.object({
   productName: z.string().min(2).max(80),
   keyFeatures: z.string().min(10).max(600),
   targetAudience: z.string().min(3).max(120),
@@ -16,4 +16,14 @@ export const descriptionSchema = z.object({
     .refine((val) => val !== "", { message: "Please select a tone" }),
 });
 
-export type DescriptionSchema = z.infer<typeof descriptionSchema>;
+export type ProductDescriptionRequest = z.infer<
+  typeof productDescriptionRequestSchema
+>;
+
+export const productDescriptionVariantSchema = z.object({
+  description: z.string(),
+});
+
+export type ProductDescriptionVariant = z.infer<
+  typeof productDescriptionVariantSchema
+>;

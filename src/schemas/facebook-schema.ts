@@ -1,7 +1,7 @@
 import { Tone } from "@/constants/tone";
 import z from "zod";
 
-export const facebookSchema = z.object({
+export const facebookAdRequestSchema = z.object({
   productName: z.string().min(2).max(80),
   productDescription: z.string().min(10).max(600),
   targetAudience: z.string().min(3).max(120),
@@ -12,4 +12,12 @@ export const facebookSchema = z.object({
   specialOffer: z.string().max(120).optional(),
 });
 
-export type FacebookSchema = z.infer<typeof facebookSchema>;
+export type FacebookAdRequest = z.infer<typeof facebookAdRequestSchema>;
+
+export const facebookAdVariantSchema = z.object({
+  headline: z.string().describe("Max 40 characters, the bold line"),
+  primaryText: z.string().describe("1-3 sentences, the main ad copy"),
+  cta: z.string().describe("Short call to action, e.g. 'Shop now'"),
+});
+
+export type FacebookAdVariant = z.infer<typeof facebookAdVariantSchema>;

@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 import { NEW_CHAT_TITLE, titleByUrl } from "@/constants/routes";
 import { cn } from "@/lib/cn";
 import { useQuery } from "@tanstack/react-query";
-import { chatsOptions } from "@/lib/query/chats-options";
+import { generationOptions } from "@/lib/query/generations-options";
 import { useMemo } from "react";
 
 export type AppHeaderProps = {

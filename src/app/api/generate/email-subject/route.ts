@@ -13,6 +13,7 @@ import { tools } from "@/lib/tools";
 import { getChat, saveChat, validateMessages } from "@/lib/actions/generations";
 import { MyUIMessage } from "@/types/chat";
 import { auth } from "@clerk/nextjs/server";
+import { emailSubjectRequestSchema } from "@/schemas/email-schema";
 
 const schema = z.object({
   // Message is validated below
@@ -31,14 +32,14 @@ export async function POST(req: Request) {
 
   const body = await req.json();
 
-  const parsed = schema.safeParse(body);
+  const parsed = emailSubjectRequestSchema.safeParse(body);
   if (!parsed.success) {
     return Response.json(
       { error: "Invalid request", details: parsed.error.issues },
       { status: 400 },
     );
   }
-  const { message, modelId, chatId } = parsed.data;
+  const { emailGoal, emailSummary, includeEmoji, tone } = parsed.data;
 
   const chat = await getChat({ chatId });
 

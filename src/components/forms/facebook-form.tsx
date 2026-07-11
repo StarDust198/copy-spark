@@ -7,8 +7,14 @@ import { SelectField } from "../fields/select-field";
 import { InputField } from "../fields/input-field";
 import { TextareaField } from "../fields/textarea-field";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { facebookSchema } from "@/schemas/facebook-schema";
+import {
+  FacebookAdRequest,
+  facebookAdRequestSchema,
+} from "@/schemas/facebook-schema";
 import { Button } from "../ui/button";
+import { TemplateId } from "@/constants/templates";
+import { useCreateGeneration } from "@/lib/query/use-generation-hooks";
+import { useRouter } from "next/navigation";
 
 export function FacebookForm() {
   const form = useForm({
@@ -19,11 +25,19 @@ export function FacebookForm() {
       tone: "",
       specialOffer: "",
     },
-    resolver: zodResolver(facebookSchema),
+    resolver: zodResolver(facebookAdRequestSchema),
   });
 
-  function onSubmit(fields: unknown) {
-    console.log("FacebookForm onSubmit", fields);
+  const createGenerationMutation = useCreateGeneration();
+  const router = useRouter();
+
+  async function onSubmit(fields: FacebookAdRequest) {
+    const generation = await createGenerationMutation.mutateAsync({
+      request: fields,
+      templateId: TemplateId.facebookAd,
+    });
+
+    router.push(`/generation/${generation.id}`);
   }
 
   return (
@@ -76,7 +90,9 @@ export function FacebookForm() {
         />
       </div>
 
-      <Button type="submit">Generate</Button>
+      <Button type="submit" disabled={form.formState.isSubmitting}>
+        Generate
+      </Button>
     </form>
   );
 }

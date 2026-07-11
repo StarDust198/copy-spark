@@ -8,8 +8,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { SelectItem } from "../ui/select";
 import { Tone } from "@/constants/tone";
 import { Button } from "../ui/button";
-import { descriptionSchema } from "@/schemas/description-schema";
+import {
+  ProductDescriptionRequest,
+  productDescriptionRequestSchema,
+} from "@/schemas/description-schema";
 import { Length } from "@/constants/length";
+import { TemplateId } from "@/constants/templates";
+import { useCreateGeneration } from "@/lib/query/use-generation-hooks";
+import { useRouter } from "next/navigation";
 
 export function DescriptionForm() {
   const form = useForm({
@@ -20,11 +26,19 @@ export function DescriptionForm() {
       length: Length.medium,
       tone: "" as const,
     },
-    resolver: zodResolver(descriptionSchema),
+    resolver: zodResolver(productDescriptionRequestSchema),
   });
 
-  function onSubmit(fields: unknown) {
-    console.log("DescriptionForm onSubmit", fields);
+  const createGenerationMutation = useCreateGeneration();
+  const router = useRouter();
+
+  async function onSubmit(fields: ProductDescriptionRequest) {
+    const generation = await createGenerationMutation.mutateAsync({
+      request: fields,
+      templateId: TemplateId.productDescription,
+    });
+
+    router.push(`/generation/${generation.id}`);
   }
 
   return (
@@ -85,7 +99,9 @@ export function DescriptionForm() {
         </SelectField>
       </div>
 
-      <Button type="submit">Generate</Button>
+      <Button type="submit" disabled={form.formState.isSubmitting}>
+        Generate
+      </Button>
     </form>
   );
 }

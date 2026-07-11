@@ -7,9 +7,15 @@ import { Tone } from "@/constants/tone";
 import { SelectItem } from "../ui/select";
 import { Button } from "../ui/button";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { EmailSchema, emailSchema } from "@/schemas/email-schema";
+import {
+  EmailSubjectRequest,
+  emailSubjectRequestSchema,
+} from "@/schemas/email-schema";
 import { CheckboxField } from "../fields/checkbox-field";
 import { EmailGoal } from "@/constants/emailGoal";
+import { TemplateId } from "@/constants/templates";
+import { useCreateGeneration } from "@/lib/query/use-generation-hooks";
+import { useRouter } from "next/navigation";
 
 export function EmailForm() {
   const form = useForm({
@@ -19,11 +25,19 @@ export function EmailForm() {
       tone: "" as const,
       includeEmoji: false,
     },
-    resolver: zodResolver(emailSchema),
+    resolver: zodResolver(emailSubjectRequestSchema),
   });
 
-  function onSubmit(fields: unknown) {
-    console.log("EmailForm onSubmit", fields);
+  const createGenerationMutation = useCreateGeneration();
+  const router = useRouter();
+
+  async function onSubmit(fields: EmailSubjectRequest) {
+    const generation = await createGenerationMutation.mutateAsync({
+      request: fields,
+      templateId: TemplateId.emailSubject,
+    });
+
+    router.push(`/generation/${generation.id}`);
   }
 
   return (
@@ -76,7 +90,9 @@ export function EmailForm() {
         />
       </div>
 
-      <Button type="submit">Generate</Button>
+      <Button type="submit" disabled={form.formState.isSubmitting}>
+        Generate
+      </Button>
     </form>
   );
 }

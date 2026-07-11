@@ -14,7 +14,8 @@ generator client {
 model Generation {
   id           String   @id @default(cuid())
   userId       String                    // Clerk user id
-  templateSlug String                    // "facebook-ad", "product-description"
+  templateId   String                    // "facebook-ad", "product-description"
+  title        String                    // title for generation
   input        Json                      // the form values as submitted
   output       Json                      // array of generated variants
   model        String                    // "gpt-4o-mini", "claude-sonnet-4-6"

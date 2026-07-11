@@ -1,10 +1,7 @@
 // Other title options - "What do you want to write today?", "Choose a template and get 5 copy variants in seconds"
 import type { Metadata } from "next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  GenerationTarget,
-  GenerationTargetId,
-} from "@/constants/generationTargets";
+import { Template, TemplateId } from "@/constants/templates";
 import { CircleChevronLeft } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import {
@@ -13,15 +10,16 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 
 type Props = {
-  params: Promise<{ generationTargetId: GenerationTargetId }>;
+  params: Promise<{ templateId: TemplateId }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { generationTargetId } = await params;
+  const { templateId } = await params;
 
-  const { title, description } = GenerationTarget[generationTargetId];
+  const { title, description } = Template[templateId];
 
   return {
     title,
@@ -30,9 +28,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function Page({ params }: Props) {
-  const { generationTargetId } = await params;
+  const { templateId } = await params;
 
-  const { title, form: Form } = GenerationTarget[generationTargetId];
+  const generationTarget = Template[templateId];
+
+  if (!generationTarget) notFound();
+
+  const { title, form: Form } = generationTarget;
 
   return (
     <div className="flex flex-col justify-center items-center gap-8 h-full">
@@ -57,7 +59,7 @@ export default async function Page({ params }: Props) {
             </Tooltip>
 
             <p>
-              Generate a new{" "}
+              Create a new{" "}
               <span className="inline-block first-letter:lowercase">
                 {title}
               </span>

@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useMemo } from "react";
+import { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -19,11 +19,9 @@ import { Show, SignOutButton } from "@clerk/nextjs";
 import {
   ArrowRightEndOnRectangleIcon,
   ArrowRightStartOnRectangleIcon,
-  ChatBubbleLeftRightIcon,
   UserPlusIcon,
 } from "@heroicons/react/24/outline";
 import {
-  NEW_CHAT_TITLE,
   privateRoutes,
   publicRoutes,
   RouteData,
@@ -31,7 +29,7 @@ import {
   SIGN_OUT_TITLE,
 } from "@/constants/routes";
 import { useQuery } from "@tanstack/react-query";
-import { chatsOptions } from "@/lib/query/chats-options";
+import { generationOptions } from "@/lib/query/generations-options";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,7 +38,7 @@ import {
 } from "../ui/dropdown-menu";
 import { Button } from "../ui/button";
 import { EllipsisVertical, LayoutDashboardIcon } from "lucide-react";
-import { useDeleteChat } from "@/lib/query/use-chat-hooks";
+import { useDeleteGeneration } from "@/lib/query/use-generation-hooks";
 
 export type AppSidebarItem = {
   title: string;
@@ -61,9 +59,9 @@ const routeIconsMap: Record<RouteKey, ReactNode> = {
 export function AppSidebar() {
   const pathname = usePathname();
   const { state } = useSidebar();
-  // const { data: chats } = useQuery(chatsOptions());
+  const { data: generations } = useQuery(generationOptions());
 
-  const deleteChatMutation = useDeleteChat();
+  const deleteChatMutation = useDeleteGeneration();
 
   const isExpanded = state === "expanded";
 
@@ -154,25 +152,25 @@ export function AppSidebar() {
 
         <Show when="signed-in">
           <SidebarGroup className="min-h-0">
-            <SidebarGroupLabel>Chats</SidebarGroupLabel>
+            <SidebarGroupLabel>Generations</SidebarGroupLabel>
 
             <SidebarGroupContent className="flex flex-col grow min-h-0 gap-0.5 px-1 overflow-hidden hover:overflow-y-auto">
               <SidebarMenu>
-                {/* {chats?.map((chat) => {
-                  const chatUrl = `/chat/${chat.id}`;
+                {generations?.map((generation) => {
+                  const chatUrl = `/generation/${generation.id}`;
                   const isActiveChat = pathname === chatUrl;
 
                   return (
                     <SidebarMenuItem
-                      key={chat.id}
+                      key={generation.id}
                       className="flex items-center gap-2 justify-between"
                     >
                       <SidebarMenuButton
-                        tooltip={chat.title}
+                        tooltip={generation.title}
                         isActive={isActiveChat}
                         render={
                           <Link href={chatUrl}>
-                            <span className="truncate">{chat.title}</span>
+                            <span className="truncate">{generation.title}</span>
                           </Link>
                         }
                       />
@@ -195,7 +193,9 @@ export function AppSidebar() {
                             <DropdownMenuItem
                               disabled={deleteChatMutation.isPending}
                               onClick={() =>
-                                deleteChatMutation.mutateAsync({ id: chat.id })
+                                deleteChatMutation.mutateAsync({
+                                  id: generation.id,
+                                })
                               }
                             >
                               Delete Chat
@@ -205,7 +205,7 @@ export function AppSidebar() {
                       )}
                     </SidebarMenuItem>
                   );
-                })} */}
+                })}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>

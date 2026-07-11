@@ -46,7 +46,7 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { ChatContext } from "./chat-context";
 import { DefaultChatTransport } from "ai";
-import { useCreateChat } from "@/lib/query/use-chat-hooks";
+import { useCreateGeneration } from "@/lib/query/use-generation-hooks";
 
 interface ChatProps {
   models: AnthropicModel[];
@@ -65,7 +65,7 @@ export function Chat({ id, models, initialMessages }: ChatProps) {
     );
   });
 
-  const createChatMutation = useCreateChat();
+  const createChatMutation = useCreateGeneration();
   const { messages, sendMessage, status, regenerate, error } =
     useChat<MyUIMessage>({
       id,
@@ -93,7 +93,7 @@ export function Chat({ id, models, initialMessages }: ChatProps) {
       try {
         await createChatMutation.mutateAsync({
           userMessage: trimmedMessage,
-          id,
+          templateId: id,
         });
       } catch {
         toast("Error", {

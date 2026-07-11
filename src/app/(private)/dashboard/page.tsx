@@ -1,5 +1,6 @@
 // Other title options - "What do you want to write today?", "Choose a template and get 5 copy variants in seconds"
 
+import { PageContent } from "@/components/layout/page-content";
 import {
   Card,
   CardContent,
@@ -7,26 +8,19 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { GenerationTarget } from "@/constants/generationTargets";
+import { Template } from "@/constants/templates";
 import { MegaphoneIcon } from "lucide-react";
 import Link from "next/link";
 
-const templates = Object.values(GenerationTarget);
+const templates = Object.values(Template);
 
 export default function Page() {
   return (
-    <div className="flex flex-col gap-8 h-full py-24 justify-evenly">
-      <div className="shrink-0 flex flex-col gap-1">
-        <h1 className="text-xl text-center">
-          Pick a template, get ready-to-use variants in seconds
-        </h1>
-
-        <p className="text-muted-foreground text-center">
-          What do you want to write today?
-        </p>
-      </div>
-
-      <div className="flex gap-4 flex-wrap justify-around items-center shrink-0">
+    <PageContent
+      title="Pick a template, get ready-to-use variants in seconds"
+      description="What do you want to write today?"
+    >
+      <div className="h-full flex gap-6 flex-wrap justify-around items-center shrink-0">
         {templates.map((template) => {
           return (
             <Link href={template.link} key={template.link}>
@@ -51,6 +45,6 @@ export default function Page() {
           );
         })}
       </div>
-    </div>
+    </PageContent>
   );
 }

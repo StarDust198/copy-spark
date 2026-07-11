@@ -2,7 +2,7 @@ import { EmailGoal } from "@/constants/emailGoal";
 import { Tone } from "@/constants/tone";
 import z from "zod";
 
-export const emailSchema = z.object({
+export const emailSubjectRequestSchema = z.object({
   emailGoal: z
     .enum(Object.values(EmailGoal))
     .or(z.literal(""))
@@ -15,4 +15,13 @@ export const emailSchema = z.object({
   includeEmoji: z.boolean(),
 });
 
-export type EmailSchema = z.infer<typeof emailSchema>;
+export type EmailSubjectRequest = z.infer<typeof emailSubjectRequestSchema>;
+
+export const emailSubjectVariantSchema = z.object({
+  subject: z.string().describe("Max ~50 characters"),
+  previewText: z
+    .string()
+    .describe("Complements the subject, max ~90 characters"),
+});
+
+export type EmailSubjectVariant = z.infer<typeof emailSubjectVariantSchema>;
