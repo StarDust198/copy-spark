@@ -8,19 +8,26 @@ generator client {
   provider = "prisma-client-js"
 }
 
+enum GenerationStatus {
+  PENDING
+  STREAMING
+  COMPLETED
+  ERROR
+}
+
 // Deliberate decision here: input and output as Json, not separate columns. Each template has different fields,
 // so I'm dropping a rigid schema for now. This is a pragmatic v1 choice - should be mentioned in Readme
-
 model Generation {
-  id           String   @id @default(cuid())
-  userId       String                    // Clerk user id
-  templateId   String                    // "facebook-ad", "product-description"
-  title        String                    // title for generation
-  input        Json                      // the form values as submitted
-  output       Json                      // array of generated variants
-  model        String                    // "gpt-4o-mini", "claude-sonnet-4-6"
-  favorite     Boolean  @default(false)
-  createdAt    DateTime @default(now())
+  id           String             @id @default(cuid())
+  userId       String                                    // Clerk user id
+  templateId   String                                    // "facebook-ad", "product-description"
+  title        String                                    // title for generation
+  input        Json                                      // the form values as submitted
+  output       Json?                                     // array of generated variants
+  status       GenerationStatus   @default(PENDING)      // status of the generation
+  model        String                                    // "gpt-4o-mini", "claude-sonnet-4-6"
+  favorite     Boolean            @default(false)
+  createdAt    DateTime           @default(now())
 
   @@index([userId, createdAt])
 }

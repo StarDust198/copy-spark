@@ -2,18 +2,20 @@ import { DescriptionForm } from "@/components/forms/description-form";
 import { EmailForm } from "@/components/forms/email-form";
 import { FacebookForm } from "@/components/forms/facebook-form";
 import {
+  productDescriptionOutputSchema,
   productDescriptionRequestSchema,
   productDescriptionVariantSchema,
 } from "@/schemas/description-schema";
 import {
+  emailSubjectOutputSchema,
   emailSubjectRequestSchema,
   emailSubjectVariantSchema,
 } from "@/schemas/email-schema";
 import {
+  facebookAdOutputSchema,
   facebookAdRequestSchema,
   facebookAdVariantSchema,
 } from "@/schemas/facebook-schema";
-import z from "zod";
 
 export type TemplateId = (typeof TemplateId)[keyof typeof TemplateId];
 
@@ -28,26 +30,24 @@ export const Template = {
     form: FacebookForm,
     title: "Facebook / Instagram ad",
     description: "Short, punchy ad text with a hook and a call to action.",
-    link: "/new/facebook-ad",
+    createUrl: "/new/facebook-ad",
     example: "Tired of yoga mats that slip? Meet the last mat you'll ever buy",
     inputSchema: facebookAdRequestSchema,
-    outputSchema: z.object({
-      title: z.string(),
-      variants: z.array(facebookAdVariantSchema),
-    }),
+    variantSchema: facebookAdVariantSchema,
+    outputSchema: facebookAdOutputSchema,
+    streamApiUrl: "/api/generate/facebook-ad",
   },
   [TemplateId.emailSubject]: {
     form: EmailForm,
     title: "Email subject lines",
     description:
       "Subject lines that get your emails opened instead of deleted.",
-    link: "/new/email-subject",
+    createUrl: "/new/email-subject",
     example: "You left something behind (and it misses you)",
     inputSchema: emailSubjectRequestSchema,
-    outputSchema: z.object({
-      title: z.string(),
-      variants: z.array(emailSubjectVariantSchema),
-    }),
+    variantSchema: emailSubjectVariantSchema,
+    outputSchema: emailSubjectOutputSchema,
+    streamApiUrl: "/api/generate/email-subject",
   },
   [TemplateId.productDescription]: {
     form: DescriptionForm,
@@ -55,13 +55,12 @@ export const Template = {
     description:
       "Persuasive copy for online store listings — features turned into benefits.",
 
-    link: "/new/product-description",
+    createUrl: "/new/product-description",
     example:
       "Crafted from cork so grippy you'll hold poses you didn't know you could.",
     inputSchema: productDescriptionRequestSchema,
-    outputSchema: z.object({
-      title: z.string(),
-      variants: z.array(productDescriptionVariantSchema),
-    }),
+    variantSchema: productDescriptionVariantSchema,
+    outputSchema: productDescriptionOutputSchema,
+    streamApiUrl: "/api/generate/product-description",
   },
 } as const;

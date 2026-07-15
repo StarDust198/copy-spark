@@ -4,13 +4,13 @@ import { emailSubjectVariantSchema } from "@/schemas/email-schema";
 import { facebookAdVariantSchema } from "@/schemas/facebook-schema";
 import z from "zod";
 
-type ResultConfig = {
+type ResultConfig<T extends z.ZodType> = {
   description: string;
-  variantSchema: z.ZodType<Record<string, string>>;
+  variantSchema: T;
   fields: { label: string; key: string }[];
 };
 
-export const generationResults: Record<TemplateId, ResultConfig> = {
+export const generationResults = {
   [TemplateId.emailSubject]: {
     description: "Email Subject Lines",
     variantSchema: emailSubjectVariantSchema,
@@ -33,4 +33,4 @@ export const generationResults: Record<TemplateId, ResultConfig> = {
     variantSchema: productDescriptionVariantSchema,
     fields: [{ label: "Description", key: "description" }],
   },
-};
+} satisfies Record<TemplateId, ResultConfig<z.ZodType>>;

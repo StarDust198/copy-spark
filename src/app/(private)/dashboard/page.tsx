@@ -23,7 +23,7 @@ export default function Page() {
       <div className="h-full flex gap-6 flex-wrap justify-around items-center shrink-0">
         {templates.map((template) => {
           return (
-            <Link href={template.link} key={template.link}>
+            <Link href={template.createUrl} key={template.createUrl}>
               <Card className="transition-colors hover:border-primary hover:bg-accent w-60 min-h-64 justify-between">
                 <CardHeader className="gap-2">
                   <CardTitle className="flex items-center gap-2">

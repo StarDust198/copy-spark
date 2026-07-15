@@ -1,28 +1,17 @@
-import {
-  streamText,
-  convertToModelMessages,
-  stepCountIs,
-  createUIMessageStreamResponse,
-  toUIMessageStream,
-  TypeValidationError,
-  createIdGenerator,
-} from "ai";
-import { anthropic } from "@ai-sdk/anthropic";
+import { streamText, Output, createTextStreamResponse, toTextStream } from "ai";
 import { z } from "zod";
-import { tools } from "@/lib/tools";
-import { getChat, saveChat, validateMessages } from "@/lib/actions/generations";
-import { MyUIMessage } from "@/types/chat";
 import { auth } from "@clerk/nextjs/server";
-import { emailSubjectRequestSchema } from "@/schemas/email-schema";
+import {
+  emailSubjectOutputSchema,
+  emailSubjectRequestSchema,
+} from "@/schemas/email-schema";
+import { createEmailSubjectPrompt } from "@/lib/prompts";
+import { FREE_MODEL } from "@/constants/model";
+import { after } from "next/server";
+import { updateGeneration } from "@/lib/actions/generations";
+import { GenerationStatus } from "@prisma/client";
 
-const schema = z.object({
-  // Message is validated below
-  message: z.custom<MyUIMessage>(),
-  // messages: z.array(z.custom<MyUIMessage>()),
-  modelId: z.string(),
-  chatId: z.string(),
-});
-
+// TODO: Deduplicate route handlers
 export async function POST(req: Request) {
   const { isAuthenticated } = await auth();
 
@@ -32,94 +21,69 @@ export async function POST(req: Request) {
 
   const body = await req.json();
 
-  const parsed = emailSubjectRequestSchema.safeParse(body);
+  const parsed = z.object({ id: z.string() }).safeParse(body);
+
   if (!parsed.success) {
     return Response.json(
       { error: "Invalid request", details: parsed.error.issues },
       { status: 400 },
     );
   }
-  const { emailGoal, emailSummary, includeEmoji, tone } = parsed.data;
 
-  const chat = await getChat({ chatId });
+  const { id } = parsed.data;
 
-  if (!chat) {
+  const generation = await updateGeneration({
+    id,
+    status: GenerationStatus.STREAMING,
+  });
+
+  if (!generation) {
     return Response.json({ error: "Not found" }, { status: 404 });
   }
 
-  let validatedMessages: MyUIMessage[];
+  const generationInput = generation.input;
 
-  try {
-    validatedMessages = await validateMessages(chat.messages);
-  } catch (error) {
-    if (error instanceof TypeValidationError) {
-      console.error("Database messages validation failed:", error);
-      // Could implement message migration or filtering here
-      // For now, start with empty history
-      validatedMessages = [];
-    } else {
-      return Response.json(
-        { error: "Error validating DB messages" },
-        { status: 500 },
-      );
-    }
+  if (typeof generationInput !== "string") {
+    return Response.json({ error: "Server error" }, { status: 500 });
   }
 
-  try {
-    const [validatedMessage] = await validateMessages([message]);
+  const parsedRequest = emailSubjectRequestSchema.safeParse(
+    JSON.parse(generationInput),
+  );
 
-    validatedMessages.push(validatedMessage);
-  } catch (error) {
-    console.error("User message validation failed:", error);
-
-    return Response.json(
-      { error: "Error validating user message" },
-      { status: 400 },
-    );
-  }
-
-  const modelMessages = await convertToModelMessages(validatedMessages);
-
-  // mark the final message as the cache breakpoint
-  const last = modelMessages.at(-1);
-  if (last) {
-    last.providerOptions = {
-      ...last.providerOptions,
-      anthropic: { cacheControl: { type: "ephemeral" } },
-    };
+  if (!parsedRequest.success) {
+    return Response.json({ error: "Server error" }, { status: 500 });
   }
 
   const result = streamText({
-    model: anthropic(modelId),
-    messages: modelMessages,
-    stopWhen: stepCountIs(5),
-    tools,
+    model: FREE_MODEL,
+    system: `
+      You are an expert AI copywriting assistant specialized in high-converting digital marketing content. Your goal is to analyze the user's provided template data and generate compelling, persuasive, and platform-appropriate copy variations.
+    `,
+    prompt: createEmailSubjectPrompt(parsedRequest.data),
+    output: Output.object({
+      schema: emailSubjectOutputSchema,
+    }),
   });
 
   // consume the stream to ensure it runs to completion & triggers onEnd
   // even when the client response is aborted:
   result.consumeStream(); // no await
 
-  return createUIMessageStreamResponse({
-    stream: toUIMessageStream({
-      stream: result.stream,
-      originalMessages: validatedMessages,
-      generateMessageId: createIdGenerator({
-        prefix: "msg",
-        size: 16,
-      }),
-      onEnd: ({ messages }) => {
-        saveChat({ chatId, messages });
-      },
-      messageMetadata: ({ part }) => {
-        if (part.type !== "finish") return;
+  // on Vercel, once the response finishes streaming, the function can be
+  // frozen. that wrapper helps to avoid it
+  after(async () => {
+    const { title, variants } = await result.output;
 
-        return {
-          finishReason: part.finishReason,
-          usage: part.totalUsage,
-          modelId,
-        };
-      },
-    }),
+    updateGeneration({
+      id,
+      status: GenerationStatus.COMPLETED,
+      output: variants,
+      title: title,
+    });
+  });
+
+  return createTextStreamResponse({
+    stream: toTextStream({ stream: result.stream }),
   });
 }

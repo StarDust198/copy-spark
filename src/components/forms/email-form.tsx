@@ -13,9 +13,10 @@ import {
 } from "@/schemas/email-schema";
 import { CheckboxField } from "../fields/checkbox-field";
 import { EmailGoal } from "@/constants/emailGoal";
-import { TemplateId } from "@/constants/templates";
-import { useCreateGeneration } from "@/lib/query/use-generation-hooks";
+import { useCreateEmailSubjectGeneration } from "@/lib/query/use-generation-hooks";
 import { useRouter } from "next/navigation";
+import { generateId } from "ai";
+import { FREE_MODEL } from "@/constants/model";
 
 export function EmailForm() {
   const form = useForm({
@@ -28,13 +29,17 @@ export function EmailForm() {
     resolver: zodResolver(emailSubjectRequestSchema),
   });
 
-  const createGenerationMutation = useCreateGeneration();
+  const createEmailSubjectGenerationMutation =
+    useCreateEmailSubjectGeneration();
   const router = useRouter();
 
   async function onSubmit(fields: EmailSubjectRequest) {
-    const generation = await createGenerationMutation.mutateAsync({
+    const id = generateId();
+
+    const generation = await createEmailSubjectGenerationMutation.mutateAsync({
+      id,
       request: fields,
-      templateId: TemplateId.emailSubject,
+      model: FREE_MODEL,
     });
 
     router.push(`/generation/${generation.id}`);

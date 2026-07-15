@@ -1,6 +1,7 @@
 import { Length } from "@/constants/length";
 import { Tone } from "@/constants/tone";
 import z from "zod";
+import { getOutputSchema } from "./generation";
 
 export const productDescriptionRequestSchema = z.object({
   productName: z.string().min(2).max(80),
@@ -26,4 +27,12 @@ export const productDescriptionVariantSchema = z.object({
 
 export type ProductDescriptionVariant = z.infer<
   typeof productDescriptionVariantSchema
+>;
+
+export const productDescriptionOutputSchema = getOutputSchema(
+  productDescriptionVariantSchema,
+);
+
+export type ProductDescriptionOutput = z.infer<
+  typeof productDescriptionOutputSchema
 >;

@@ -1,6 +1,7 @@
 import { EmailGoal } from "@/constants/emailGoal";
 import { Tone } from "@/constants/tone";
 import z from "zod";
+import { getOutputSchema } from "./generation";
 
 export const emailSubjectRequestSchema = z.object({
   emailGoal: z
@@ -25,3 +26,9 @@ export const emailSubjectVariantSchema = z.object({
 });
 
 export type EmailSubjectVariant = z.infer<typeof emailSubjectVariantSchema>;
+
+export const emailSubjectOutputSchema = getOutputSchema(
+  emailSubjectVariantSchema,
+);
+
+export type EmailSubjectOutput = z.infer<typeof emailSubjectOutputSchema>;

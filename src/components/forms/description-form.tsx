@@ -13,9 +13,10 @@ import {
   productDescriptionRequestSchema,
 } from "@/schemas/description-schema";
 import { Length } from "@/constants/length";
-import { TemplateId } from "@/constants/templates";
-import { useCreateGeneration } from "@/lib/query/use-generation-hooks";
+import { useCreateProductDescriptionGeneration } from "@/lib/query/use-generation-hooks";
 import { useRouter } from "next/navigation";
+import { generateId } from "ai";
+import { FREE_MODEL } from "@/constants/model";
 
 export function DescriptionForm() {
   const form = useForm({
@@ -29,14 +30,19 @@ export function DescriptionForm() {
     resolver: zodResolver(productDescriptionRequestSchema),
   });
 
-  const createGenerationMutation = useCreateGeneration();
+  const createProductDescriptionGenerationMutation =
+    useCreateProductDescriptionGeneration();
   const router = useRouter();
 
   async function onSubmit(fields: ProductDescriptionRequest) {
-    const generation = await createGenerationMutation.mutateAsync({
-      request: fields,
-      templateId: TemplateId.productDescription,
-    });
+    const id = generateId();
+
+    const generation =
+      await createProductDescriptionGenerationMutation.mutateAsync({
+        id,
+        request: fields,
+        model: FREE_MODEL,
+      });
 
     router.push(`/generation/${generation.id}`);
   }

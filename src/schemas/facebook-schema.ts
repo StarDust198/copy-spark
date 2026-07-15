@@ -1,5 +1,6 @@
 import { Tone } from "@/constants/tone";
 import z from "zod";
+import { getOutputSchema } from "./generation";
 
 export const facebookAdRequestSchema = z.object({
   productName: z.string().min(2).max(80),
@@ -21,3 +22,7 @@ export const facebookAdVariantSchema = z.object({
 });
 
 export type FacebookAdVariant = z.infer<typeof facebookAdVariantSchema>;
+
+export const facebookAdOutputSchema = getOutputSchema(facebookAdVariantSchema);
+
+export type FacebookAdOutput = z.infer<typeof facebookAdOutputSchema>;

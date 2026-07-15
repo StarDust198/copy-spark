@@ -12,9 +12,10 @@ import {
   facebookAdRequestSchema,
 } from "@/schemas/facebook-schema";
 import { Button } from "../ui/button";
-import { TemplateId } from "@/constants/templates";
-import { useCreateGeneration } from "@/lib/query/use-generation-hooks";
+import { useCreateFacebookAdGeneration } from "@/lib/query/use-generation-hooks";
 import { useRouter } from "next/navigation";
+import { generateId } from "ai";
+import { FREE_MODEL } from "@/constants/model";
 
 export function FacebookForm() {
   const form = useForm({
@@ -28,13 +29,16 @@ export function FacebookForm() {
     resolver: zodResolver(facebookAdRequestSchema),
   });
 
-  const createGenerationMutation = useCreateGeneration();
+  const createFacebookAdGenerationMutation = useCreateFacebookAdGeneration();
   const router = useRouter();
 
   async function onSubmit(fields: FacebookAdRequest) {
-    const generation = await createGenerationMutation.mutateAsync({
+    const id = generateId();
+
+    const generation = await createFacebookAdGenerationMutation.mutateAsync({
+      id,
       request: fields,
-      templateId: TemplateId.facebookAd,
+      model: FREE_MODEL,
     });
 
     router.push(`/generation/${generation.id}`);
