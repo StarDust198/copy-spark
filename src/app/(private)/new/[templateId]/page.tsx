@@ -1,6 +1,6 @@
-// Other title options - "What do you want to write today?", "Choose a template and get 5 copy variants in seconds"
 import type { Metadata } from "next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { TemplateForm } from "@/components/forms";
 import { Template, TemplateId } from "@/constants/templates";
 import { CircleChevronLeft } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
@@ -11,15 +11,20 @@ import {
 } from "@/components/ui/tooltip";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import z from "zod";
 
-type Props = {
-  params: Promise<{ templateId: TemplateId }>;
-};
-
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: PageProps<"/new/[templateId]">): Promise<Metadata> {
   const { templateId } = await params;
 
-  const { title, description } = Template[templateId];
+  const parsedTemplateId = z
+    .enum(Object.values(TemplateId))
+    .safeParse(templateId);
+
+  const { title, description } = parsedTemplateId.success
+    ? Template[parsedTemplateId.data]
+    : {};
 
   return {
     title,
@@ -27,14 +32,23 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function Page({ params }: Props) {
+export default async function Page({ params }: PageProps<"/new/[templateId]">) {
   const { templateId } = await params;
 
-  const generationTarget = Template[templateId];
+  const parsedTemplateId = z
+    .enum(Object.values(TemplateId))
+    .safeParse(templateId);
+
+  if (!parsedTemplateId.success) {
+    notFound();
+  }
+
+  const generationTarget = Template[parsedTemplateId.data];
 
   if (!generationTarget) notFound();
 
-  const { title, form: Form } = generationTarget;
+  const { title } = generationTarget;
+  const Form = TemplateForm[parsedTemplateId.data];
 
   return (
     <div className="flex flex-col justify-center items-center gap-8 h-full">

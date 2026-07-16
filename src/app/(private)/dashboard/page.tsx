@@ -20,7 +20,7 @@ export default function Page() {
       title="Pick a template, get ready-to-use variants in seconds"
       description="What do you want to write today?"
     >
-      <div className="h-full flex gap-6 flex-wrap justify-around items-center shrink-0">
+      <div className="flex gap-6 flex-wrap justify-around items-start shrink-0">
         {templates.map((template) => {
           return (
             <Link href={template.createUrl} key={template.createUrl}>

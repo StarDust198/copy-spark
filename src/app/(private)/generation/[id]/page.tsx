@@ -1,8 +1,7 @@
-import { generationResults } from "@/components/generation/generation-results";
 import { GenerationStreamer } from "@/components/generation/generation-streamer";
 import { VariantCard } from "@/components/generation/variant-card";
 import { PageContent } from "@/components/layout/page-content";
-import { TemplateId } from "@/constants/templates";
+import { Template, TemplateId } from "@/constants/templates";
 import { getGeneration } from "@/lib/actions/generations";
 import { GenerationStatus } from "@prisma/client";
 import { notFound } from "next/navigation";
@@ -17,40 +16,53 @@ export default async function Page(props: PageProps<"/generation/[id]">) {
     notFound();
   }
 
-  const templateId = generation.templateId as TemplateId;
-  const config = generationResults[templateId];
+  const parsedTemplateId = z
+    .enum(Object.values(TemplateId))
+    .safeParse(generation.templateId);
 
-  if (!config) {
+  if (!parsedTemplateId.success) {
     notFound();
   }
+
+  const template = Template[parsedTemplateId.data];
 
   function renderContent() {
     switch (generation?.status) {
       case GenerationStatus.PENDING: {
-        return <GenerationStreamer id={id} templateId={templateId} />;
+        return <GenerationStreamer id={id} templateId={template.id} />;
       }
 
       case GenerationStatus.COMPLETED: {
-        const variants = z.array(config.variantSchema).parse(generation.output);
+        const variants = z
+          .array(template.variantSchema)
+          .parse(generation.output);
 
         return variants.map((variant, index) => (
           <VariantCard
             key={index}
             index={index}
             variant={variant}
-            fields={config.fields}
+            fields={template.fields}
           />
         ));
+      }
+
+      case GenerationStatus.ERROR: {
+        // TODO: Add retry button here
+        return <div>Add retry button here</div>;
+      }
+
+      case GenerationStatus.STREAMING: {
+        // TODO: Add loader and and refetch here
+        return <div>Add loader and and refetch here</div>;
       }
     }
   }
 
   return (
-    <PageContent title={generation.title} description={config.description}>
-      <div className="h-full flex flex-col justify-center">
-        <div className="flex gap-6 flex-wrap justify-center items-start shrink-0">
-          {renderContent()}
-        </div>
+    <PageContent title={generation.title} description={template.title}>
+      <div className="flex gap-6 flex-wrap justify-center items-start shrink-0">
+        {renderContent()}
       </div>
     </PageContent>
   );

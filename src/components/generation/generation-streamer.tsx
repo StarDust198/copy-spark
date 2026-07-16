@@ -2,7 +2,6 @@
 
 import { Template, TemplateId } from "@/constants/templates";
 import { useObject } from "@ai-sdk/react";
-import { generationResults } from "./generation-results";
 import { VariantCard } from "./variant-card";
 import z from "zod";
 import { useEffect, useRef } from "react";
@@ -18,13 +17,14 @@ export function GenerationStreamer({
 }) {
   const queryClient = useQueryClient();
 
-  const { object, submit } = useObject({
-    api: Template[templateId].streamApiUrl,
-    schema: Template[templateId].outputSchema,
+  const template = Template[templateId];
+
+  const { object, submit, isLoading } = useObject({
+    api: template.streamApiUrl,
+    schema: template.outputSchema,
     onFinish: () => queryClient.invalidateQueries(generationOptions()),
   });
 
-  const config = generationResults[templateId];
   const variants = object?.variants as
     | Array<Record<string, string | undefined> | undefined>
     | undefined;
@@ -32,7 +32,7 @@ export function GenerationStreamer({
   const filledVariants =
     variants?.map((variant) => {
       return Object.fromEntries(
-        config.fields.map((field) => [field.key, variant?.[field.key] ?? ""]),
+        template.fields.map((field) => [field.key, variant?.[field.key] ?? ""]),
       );
     }) ?? [];
 
@@ -44,21 +44,27 @@ export function GenerationStreamer({
     submit({ id });
   }, [id, submit]);
 
-  const typedVariants = z.array(config.variantSchema).safeParse(filledVariants);
+  const typedVariants = z
+    .array(template.variantSchema)
+    .safeParse(filledVariants);
 
   if (!typedVariants.success) {
     // TODO: Correct error message
     return <div>Error</div>;
   }
 
-  return typedVariants.data.map((variant, index) => {
-    return (
-      <VariantCard
-        key={index}
-        index={index}
-        variant={variant}
-        fields={config.fields}
-      />
-    );
-  });
+  return isLoading && !object ? (
+    <div className="">Loading...</div>
+  ) : (
+    typedVariants.data.map((variant, index) => {
+      return (
+        <VariantCard
+          key={index}
+          index={index}
+          variant={variant}
+          fields={template.fields}
+        />
+      );
+    })
+  );
 }

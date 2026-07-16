@@ -90,7 +90,7 @@ export function FacebookForm() {
           control={form.control}
           label="Special offer (optional)"
           name="specialOffer"
-          placeholder="Busy moms who do yoga at home"
+          placeholder="20% off this week"
         />
       </div>
 

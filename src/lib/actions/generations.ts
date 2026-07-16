@@ -8,28 +8,17 @@ import { generateText, Output } from "ai";
 // import { tools } from "../tools";
 import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
+import { ProductDescriptionRequest } from "@/schemas/description-schema";
+import { EmailSubjectRequest } from "@/schemas/email-schema";
+import { FacebookAdRequest } from "@/schemas/facebook-schema";
 import {
-  ProductDescriptionRequest,
-  ProductDescriptionVariant,
-  productDescriptionVariantSchema,
-} from "@/schemas/description-schema";
-import {
-  EmailSubjectRequest,
-  EmailSubjectVariant,
-  emailSubjectVariantSchema,
-} from "@/schemas/email-schema";
-import {
-  FacebookAdRequest,
-  FacebookAdVariant,
-  facebookAdVariantSchema,
-} from "@/schemas/facebook-schema";
-import { TemplateId } from "@/constants/templates";
+  Template,
+  TemplateId,
+  TemplateRequest,
+  TemplateVariant,
+} from "@/constants/templates";
 import z from "zod";
-import {
-  createEmailSubjectPrompt,
-  createFacebookAdPrompt,
-  createProductDescriptionPrompt,
-} from "../prompts";
+import { SYSTEM_PROMPT } from "../prompts";
 
 const model = "anthropic/claude-haiku-4.5";
 
@@ -66,9 +55,7 @@ async function generateVariants<TVariantSchema extends z.ZodType>({
 }): Promise<{ title: string; variants: z.infer<TVariantSchema>[] }> {
   const { output } = await generateText({
     model,
-    system: `
-      You are an expert AI copywriting assistant specialized in high-converting digital marketing content. Your goal is to analyze the user's provided template data and generate compelling, persuasive, and platform-appropriate copy variations.
-    `,
+    system: SYSTEM_PROMPT,
     prompt,
     output: Output.object({
       schema: z.object({
@@ -120,11 +107,8 @@ export async function createDBGeneration({
 }: {
   userId: string;
   title: string;
-  request: FacebookAdRequest | EmailSubjectRequest | ProductDescriptionRequest;
-  variants:
-    | FacebookAdVariant[]
-    | EmailSubjectVariant[]
-    | ProductDescriptionVariant[];
+  request: TemplateRequest;
+  variants: TemplateVariant[];
   templateId: TemplateId;
 }) {
   return await prisma.generation.create({
@@ -144,52 +128,27 @@ export async function createGeneration(
 ): Promise<Generation> {
   const userId = await getUserId();
 
-  switch (options.templateId) {
-    case TemplateId.facebookAd: {
-      const { title, variants } = await generateVariants({
-        prompt: createFacebookAdPrompt(options.request),
-        outputSchema: facebookAdVariantSchema,
-      });
+  const template = Template[options.templateId];
+  const builtPrompt = template.buildPrompt(options.request);
 
-      return await createDBGeneration({
-        title,
-        userId,
-        variants,
-        templateId: options.templateId,
-        request: options.request,
-      });
-    }
-
-    case TemplateId.productDescription: {
-      const { title, variants } = await generateVariants({
-        prompt: createProductDescriptionPrompt(options.request),
-        outputSchema: productDescriptionVariantSchema,
-      });
-
-      return await createDBGeneration({
-        title,
-        userId,
-        variants,
-        templateId: options.templateId,
-        request: options.request,
-      });
-    }
-
-    case TemplateId.emailSubject: {
-      const { title, variants } = await generateVariants({
-        prompt: createEmailSubjectPrompt(options.request),
-        outputSchema: emailSubjectVariantSchema,
-      });
-
-      return await createDBGeneration({
-        title,
-        userId,
-        variants,
-        templateId: options.templateId,
-        request: options.request,
-      });
-    }
+  if (!builtPrompt.success) {
+    throw new Error(`Invalid request for template "${options.templateId}"`, {
+      cause: builtPrompt.error,
+    });
   }
+
+  const { title, variants } = await generateVariants({
+    prompt: builtPrompt.prompt,
+    outputSchema: template.variantSchema,
+  });
+
+  return await createDBGeneration({
+    title,
+    userId,
+    variants,
+    templateId: options.templateId,
+    request: options.request,
+  });
 }
 
 export async function createEmailSubjectGeneration({
@@ -272,10 +231,7 @@ export async function updateGeneration({
 }: {
   id: string;
   status?: GenerationStatus;
-  output?:
-    | EmailSubjectVariant[]
-    | FacebookAdVariant[]
-    | ProductDescriptionVariant[];
+  output?: TemplateVariant[];
   title?: string;
 }) {
   const userId = await getUserId();

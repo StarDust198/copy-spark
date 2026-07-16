@@ -20,7 +20,9 @@ export function PageContent({
       <PageTitle title={title} description={description} className="shrink-0" />
 
       <div className="grow min-h-0 overflow-y-hidden hover:overflow-y-auto scrollbar-gutter-both py-1">
-        {children}
+        <div className="flex flex-col justify-center min-h-full">
+          {children}
+        </div>
       </div>
     </div>
   );
