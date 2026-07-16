@@ -2,7 +2,7 @@
 
 import { ReactNode } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import {
   Sidebar,
   SidebarContent,
@@ -11,6 +11,7 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
+  SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
@@ -36,7 +37,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { Button } from "../ui/button";
 import { EllipsisVertical, LayoutDashboardIcon } from "lucide-react";
 import { useDeleteGeneration } from "@/lib/query/use-generation-hooks";
 
@@ -58,22 +58,28 @@ const routeIconsMap: Record<RouteKey, ReactNode> = {
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const params = useParams();
+  const router = useRouter();
   const { state } = useSidebar();
   const { data: generations } = useQuery(generationOptions());
+
+  console.log("AppSidebar", { params });
 
   const deleteChatMutation = useDeleteGeneration();
 
   const isExpanded = state === "expanded";
 
-  // const isNewChatRoute = useMemo(() => {
-  //   const match = pathname.match(/^\/chat\/([^/]+)$/);
+  const handleDeleteGeneration = (generationId: string) => {
+    deleteChatMutation.mutateAsync({
+      id: generationId,
+    });
 
-  //   if (!match) return false;
+    const paramsGenerationId = params.generationId;
 
-  //   const id = match[1];
+    if (paramsGenerationId !== generationId) return;
 
-  //   return !chats?.map((chat) => chat.id).includes(id);
-  // }, [chats, pathname]);
+    router.push("/dashboard");
+  };
 
   const renderRouteGroup = (
     routeGroup: Partial<Record<RouteKey, RouteData>>,
@@ -116,20 +122,6 @@ export function AppSidebar() {
               <Show when="signed-in">
                 {renderRouteGroup(privateRoutes)}
 
-                {/* <SidebarMenuItem>
-                  <SidebarMenuButton
-                    tooltip={NEW_CHAT_TITLE}
-                    isActive={isNewChatRoute}
-                    render={
-                      <Link href="/chat">
-                        <ChatBubbleLeftRightIcon />
-
-                        <span>{NEW_CHAT_TITLE}</span>
-                      </Link>
-                    }
-                  />
-                </SidebarMenuItem> */}
-
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     tooltip={SIGN_OUT_TITLE}
@@ -168,6 +160,7 @@ export function AppSidebar() {
                       <SidebarMenuButton
                         tooltip={generation.title}
                         isActive={isActiveChat}
+                        className="pr-2! group-hover/menu-item:pr-8! group-focus-within/menu-item:pr-8! group-has-aria-expanded/menu-item:pr-8!"
                         render={
                           <Link href={chatUrl}>
                             <span className="truncate">{generation.title}</span>
@@ -175,34 +168,30 @@ export function AppSidebar() {
                         }
                       />
 
-                      {!isActiveChat && (
-                        <DropdownMenu>
-                          <DropdownMenuTrigger
-                            render={
-                              <Button
-                                variant="ghost"
-                                size="icon-xs"
-                                className="shrink-0 md:not-group-hover/menu-item:not-data-popup-open:hidden group-data-[state=collapsed]:hidden"
-                              >
-                                <EllipsisVertical />
-                              </Button>
-                            }
-                          />
+                      <DropdownMenu>
+                        <DropdownMenuTrigger
+                          render={
+                            <SidebarMenuAction showOnHover>
+                              <EllipsisVertical />
 
-                          <DropdownMenuContent>
-                            <DropdownMenuItem
-                              disabled={deleteChatMutation.isPending}
-                              onClick={() =>
-                                deleteChatMutation.mutateAsync({
-                                  id: generation.id,
-                                })
-                              }
-                            >
-                              Delete Chat
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      )}
+                              <span className="sr-only">
+                                Generation actions
+                              </span>
+                            </SidebarMenuAction>
+                          }
+                        />
+
+                        <DropdownMenuContent>
+                          <DropdownMenuItem
+                            disabled={deleteChatMutation.isPending}
+                            onClick={() =>
+                              handleDeleteGeneration(generation.id)
+                            }
+                          >
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </SidebarMenuItem>
                   );
                 })}

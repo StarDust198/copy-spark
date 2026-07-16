@@ -4,11 +4,8 @@ import { Show, UserButton } from "@clerk/nextjs";
 import { ThemeSwitcher } from "../themes/theme-switcher";
 import { SidebarTrigger } from "../ui/sidebar";
 import { usePathname } from "next/navigation";
-import { NEW_CHAT_TITLE, titleByUrl } from "@/constants/routes";
+import { titleByUrl } from "@/constants/routes";
 import { cn } from "@/lib/cn";
-import { useQuery } from "@tanstack/react-query";
-import { generationOptions } from "@/lib/query/generations-options";
-import { useMemo } from "react";
 
 export type AppHeaderProps = {
   className?: string;
@@ -16,17 +13,6 @@ export type AppHeaderProps = {
 
 export function AppHeader({ className }: AppHeaderProps) {
   const pathname = usePathname();
-  // const { data: chats } = useQuery(chatsOptions());
-
-  // const title = useMemo(() => {
-  //   const match = pathname.match(/^\/chat\/([^/]+)$/);
-
-  //   if (!match) return titleByUrl[pathname];
-
-  //   const chatId = match[1];
-
-  //   return chats?.find((chat) => chat.id === chatId)?.title ?? NEW_CHAT_TITLE;
-  // }, [chats, pathname]);
 
   return (
     <div

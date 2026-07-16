@@ -7,10 +7,12 @@ import { GenerationStatus } from "@prisma/client";
 import { notFound } from "next/navigation";
 import z from "zod";
 
-export default async function Page(props: PageProps<"/generation/[id]">) {
-  const { id } = await props.params;
+export default async function Page(
+  props: PageProps<"/generation/[generationId]">,
+) {
+  const { generationId } = await props.params;
 
-  const generation = await getGeneration({ id });
+  const generation = await getGeneration({ id: generationId });
 
   if (!generation) {
     notFound();
@@ -29,7 +31,9 @@ export default async function Page(props: PageProps<"/generation/[id]">) {
   function renderContent() {
     switch (generation?.status) {
       case GenerationStatus.PENDING: {
-        return <GenerationStreamer id={id} templateId={template.id} />;
+        return (
+          <GenerationStreamer id={generationId} templateId={template.id} />
+        );
       }
 
       case GenerationStatus.COMPLETED: {

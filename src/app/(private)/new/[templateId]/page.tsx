@@ -12,6 +12,7 @@ import {
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import z from "zod";
+import { PageContent } from "@/components/layout/page-content";
 
 export async function generateMetadata({
   params,
@@ -51,7 +52,7 @@ export default async function Page({ params }: PageProps<"/new/[templateId]">) {
   const Form = TemplateForm[parsedTemplateId.data];
 
   return (
-    <div className="flex flex-col justify-center items-center gap-8 h-full">
+    <PageContent>
       <Card className="w-full max-w-96">
         <CardHeader className="gap-2">
           <CardTitle className="flex items-center gap-1">
@@ -67,6 +68,7 @@ export default async function Page({ params }: PageProps<"/new/[templateId]">) {
                   <CircleChevronLeft />
                 </Link>
               </TooltipTrigger>
+
               <TooltipContent>
                 <p>Back to templates</p>
               </TooltipContent>
@@ -85,6 +87,6 @@ export default async function Page({ params }: PageProps<"/new/[templateId]">) {
           <Form />
         </CardContent>
       </Card>
-    </div>
+    </PageContent>
   );
 }
