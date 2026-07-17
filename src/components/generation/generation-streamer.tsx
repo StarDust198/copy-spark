@@ -7,6 +7,9 @@ import z from "zod";
 import { useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { generationOptions } from "@/lib/query/generations-options";
+import { Loader } from "../layout/loader";
+import { ErrorMessage } from "../layout/error-message";
+import { Button } from "../ui/button";
 
 export function GenerationStreamer({
   templateId,
@@ -19,7 +22,7 @@ export function GenerationStreamer({
 
   const template = Template[templateId];
 
-  const { object, submit, isLoading } = useObject({
+  const { object, submit, isLoading, error } = useObject({
     api: template.streamApiUrl,
     schema: template.outputSchema,
     onFinish: () => queryClient.invalidateQueries(generationOptions()),
@@ -48,23 +51,27 @@ export function GenerationStreamer({
     .array(template.variantSchema)
     .safeParse(filledVariants);
 
-  if (!typedVariants.success) {
-    // TODO: Correct error message
-    return <div>Error</div>;
+  if (!typedVariants.success || error) {
+    return (
+      <ErrorMessage
+        title="Something went wrong"
+        action={<Button onClick={() => submit({ id })}>Try again</Button>}
+      />
+    );
   }
 
-  return isLoading && !object ? (
-    <div className="">Loading...</div>
-  ) : (
-    typedVariants.data.map((variant, index) => {
-      return (
-        <VariantCard
-          key={index}
-          index={index}
-          variant={variant}
-          fields={template.fields}
-        />
-      );
-    })
-  );
+  if (isLoading && !object) {
+    return <Loader title="Generation starting..." />;
+  }
+
+  return typedVariants.data.map((variant, index) => {
+    return (
+      <VariantCard
+        key={index}
+        index={index}
+        variant={variant}
+        fields={template.fields}
+      />
+    );
+  });
 }

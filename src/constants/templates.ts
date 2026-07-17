@@ -44,15 +44,14 @@ function defineTemplate<
   requestSchema: TRequest;
   variantSchema: TVariant;
   fields: { label: string; key: keyof z.infer<TVariant> & string }[];
-  createPrompt: (request: z.infer<TRequest>, title: string) => string;
 }) {
   const createUrl: `/new/${TTemplateId}` = `/new/${config.id}`;
   const streamApiUrl: `/api/generate/${TTemplateId}` = `/api/generate/${config.id}`;
 
-  // `fields` and `buildPrompt` are deliberately widened here. Each entry keeps
-  // its own request/variant types at the definition site above, but callers
-  // reach entries through `Template[templateId]` — a union — and a union of
-  // differently-typed signatures is not callable.
+  // `fields` are deliberately widened here. Each entry keeps its own request/variant
+  // types at the definition site above, but callers reach entries through
+  // `Template[templateId]` — a union — and a union of differently-typed signatures
+  // is not callable.
   const fields: TemplateField[] = config.fields;
 
   return {
@@ -61,16 +60,6 @@ function defineTemplate<
     createUrl,
     streamApiUrl,
     outputSchema: getOutputSchema(config.variantSchema),
-    buildPrompt(input: unknown): BuildPromptResult {
-      const parsed = config.requestSchema.safeParse(input);
-
-      if (!parsed.success) return { success: false, error: parsed.error };
-
-      return {
-        success: true,
-        prompt: config.createPrompt(parsed.data, config.title),
-      };
-    },
   };
 }
 
@@ -87,11 +76,10 @@ export const Template = {
       { label: "Primary Text", key: "primaryText" },
       { label: "Call To Action", key: "cta" },
     ],
-    createPrompt: createFacebookAdPrompt,
   }),
   [TemplateId.emailSubject]: defineTemplate({
     id: TemplateId.emailSubject,
-    title: "Email subject line",
+    title: "Email subject lines",
     description:
       "Subject lines that get your emails opened instead of deleted.",
     example: "You left something behind (and it misses you)",
@@ -101,7 +89,6 @@ export const Template = {
       { label: "Subject", key: "subject" },
       { label: "Text preview", key: "previewText" },
     ],
-    createPrompt: createEmailSubjectPrompt,
   }),
   [TemplateId.productDescription]: defineTemplate({
     id: TemplateId.productDescription,
@@ -113,7 +100,6 @@ export const Template = {
     requestSchema: productDescriptionRequestSchema,
     variantSchema: productDescriptionVariantSchema,
     fields: [{ label: "Description", key: "description" }],
-    createPrompt: createProductDescriptionPrompt,
   }),
 } satisfies { [K in TemplateId]: { id: K } };
 

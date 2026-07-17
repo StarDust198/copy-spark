@@ -37,7 +37,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { EllipsisVertical, LayoutDashboardIcon } from "lucide-react";
+import { EllipsisVertical, LayoutDashboardIcon, Trash2 } from "lucide-react";
 import { useDeleteGeneration } from "@/lib/query/use-generation-hooks";
 
 export type AppSidebarItem = {
@@ -181,13 +181,15 @@ export function AppSidebar() {
                           }
                         />
 
-                        <DropdownMenuContent>
+                        <DropdownMenuContent className="min-w-24">
                           <DropdownMenuItem
                             disabled={deleteChatMutation.isPending}
                             onClick={() =>
                               handleDeleteGeneration(generation.id)
                             }
+                            variant="destructive"
                           >
+                            <Trash2 />
                             Delete
                           </DropdownMenuItem>
                         </DropdownMenuContent>

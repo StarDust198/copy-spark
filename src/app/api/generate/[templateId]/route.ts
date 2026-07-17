@@ -1,13 +1,20 @@
 import { streamText, Output, createTextStreamResponse, toTextStream } from "ai";
 import { z } from "zod";
 import { auth } from "@clerk/nextjs/server";
-import { SYSTEM_PROMPT } from "@/lib/prompts";
+import { buildPrompt, SYSTEM_PROMPT } from "@/lib/prompts";
 import { FREE_MODEL } from "@/constants/model";
 import { after } from "next/server";
 import { getGeneration, updateGeneration } from "@/lib/actions/generations";
 import { GenerationStatus } from "@prisma/client";
 import { Template, TemplateId } from "@/constants/templates";
 import { getOutputSchema } from "@/schemas/generation";
+
+function generationError(id: string) {
+  updateGeneration({
+    id,
+    status: GenerationStatus.ERROR,
+  });
+}
 
 export async function POST(
   req: Request,
@@ -55,9 +62,13 @@ export async function POST(
     return Response.json({ error: "Server error" }, { status: 500 });
   }
 
-  const builtPrompt = template.buildPrompt(JSON.parse(generationInput));
+  const builtPrompt = buildPrompt[parsedTemplateId.data](
+    JSON.parse(generationInput),
+  );
 
   if (!builtPrompt.success) {
+    generationError(id);
+
     return Response.json(
       {
         error: "Stored input does not match the template schema",
@@ -79,6 +90,7 @@ export async function POST(
     output: Output.object({
       schema: getOutputSchema(template.variantSchema),
     }),
+    onError: () => generationError(id),
   });
 
   // consume the stream to ensure it runs to completion & triggers onEnd
@@ -87,15 +99,21 @@ export async function POST(
 
   // on Vercel, once the response finishes streaming, the function can be
   // frozen. that wrapper helps to avoid it
+  // TODO: if server doesn't get to this for any reason - the generation
+  // TODO: will stuck at STREAMING state
   after(async () => {
-    const { title, variants } = await result.output;
+    try {
+      const { title, variants } = await result.output;
 
-    updateGeneration({
-      id,
-      status: GenerationStatus.COMPLETED,
-      output: variants,
-      title: title,
-    });
+      await updateGeneration({
+        id,
+        status: GenerationStatus.COMPLETED,
+        output: variants,
+        title: title,
+      });
+    } catch {
+      await updateGeneration({ id, status: GenerationStatus.ERROR });
+    }
   });
 
   return createTextStreamResponse({

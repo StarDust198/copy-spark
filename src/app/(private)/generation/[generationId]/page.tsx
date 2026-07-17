@@ -1,3 +1,5 @@
+import { GenerationError } from "@/components/generation/generation-error";
+import { GenerationPoller } from "@/components/generation/generation-poller";
 import { GenerationStreamer } from "@/components/generation/generation-streamer";
 import { VariantCard } from "@/components/generation/variant-card";
 import { PageContent } from "@/components/layout/page-content";
@@ -52,19 +54,17 @@ export default async function Page(
       }
 
       case GenerationStatus.ERROR: {
-        // TODO: Add retry button here
-        return <div>Add retry button here</div>;
+        return <GenerationError generationId={generationId} />;
       }
 
       case GenerationStatus.STREAMING: {
-        // TODO: Add loader and and refetch here
-        return <div>Add loader and and refetch here</div>;
+        return <GenerationPoller generationId={generationId} />;
       }
     }
   }
 
   return (
-    <PageContent title={generation.title} description={template.title}>
+    <PageContent>
       <div className="flex gap-6 flex-wrap justify-center items-start shrink-0">
         {renderContent()}
       </div>

@@ -1,9 +1,60 @@
+import "server-only";
+
 import { EmailGoal } from "@/constants/emailGoal";
 import { Length } from "@/constants/length";
 import { Tone } from "@/constants/tone";
-import { ProductDescriptionRequest } from "@/schemas/description-schema";
-import { EmailSubjectRequest } from "@/schemas/email-schema";
-import { FacebookAdRequest } from "@/schemas/facebook-schema";
+import {
+  ProductDescriptionRequest,
+  productDescriptionRequestSchema,
+} from "@/schemas/description-schema";
+import {
+  EmailSubjectRequest,
+  emailSubjectRequestSchema,
+} from "@/schemas/email-schema";
+import {
+  FacebookAdRequest,
+  facebookAdRequestSchema,
+} from "@/schemas/facebook-schema";
+import { BuildPromptResult, Template, TemplateId } from "@/constants/templates";
+import z from "zod";
+
+// same widening as defineTemplate: requestSchema and createPrompt stay paired
+// inside the generic, so callers reach a uniform (input) => BuildPromptResult
+function definePromptBuilder<TRequest extends z.ZodType>(config: {
+  requestSchema: TRequest;
+  title: string;
+  createPrompt: (request: z.infer<TRequest>, title: string) => string;
+}) {
+  return (input: unknown): BuildPromptResult => {
+    const parsed = config.requestSchema.safeParse(input);
+    if (!parsed.success) return { success: false, error: parsed.error };
+    return {
+      success: true,
+      prompt: config.createPrompt(parsed.data, config.title),
+    };
+  };
+}
+
+export const buildPrompt: Record<
+  TemplateId,
+  (input: unknown) => BuildPromptResult
+> = {
+  [TemplateId.facebookAd]: definePromptBuilder({
+    requestSchema: facebookAdRequestSchema,
+    title: Template[TemplateId.facebookAd].title,
+    createPrompt: createFacebookAdPrompt,
+  }),
+  [TemplateId.emailSubject]: definePromptBuilder({
+    requestSchema: emailSubjectRequestSchema,
+    title: Template[TemplateId.emailSubject].title,
+    createPrompt: createEmailSubjectPrompt,
+  }),
+  [TemplateId.productDescription]: definePromptBuilder({
+    requestSchema: productDescriptionRequestSchema,
+    title: Template[TemplateId.productDescription].title,
+    createPrompt: createProductDescriptionPrompt,
+  }),
+};
 
 export const SYSTEM_PROMPT = `
   You are an expert AI copywriting assistant specialized in high-converting digital marketing content. Your goal is to analyze the user's provided template data and generate compelling, persuasive, and platform-appropriate copy variations.
@@ -30,7 +81,10 @@ export const emailGoalPrompts = {
   [EmailGoal.reEngagement]: `**Re-engagement:** Use "we miss you" angles, updates on what they've missed, or an irresistible reason to return.`,
 };
 
-export function createFacebookAdPrompt(request: FacebookAdRequest, title: string) {
+export function createFacebookAdPrompt(
+  request: FacebookAdRequest,
+  title: string,
+) {
   let prompt = "\n\n### Task Instructions:\n";
   prompt += `1. Create a clear, concise title for the generation (e.g., "XOT Yoga mat ${title}").`;
   prompt += `

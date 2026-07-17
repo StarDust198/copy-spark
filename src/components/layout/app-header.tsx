@@ -1,10 +1,9 @@
-"use client";
+// "use client";
 
 import { Show, UserButton } from "@clerk/nextjs";
 import { ThemeSwitcher } from "../themes/theme-switcher";
 import { SidebarTrigger } from "../ui/sidebar";
-import { usePathname } from "next/navigation";
-import { titleByUrl } from "@/constants/routes";
+import { RouteTitle } from "./route-title";
 import { cn } from "@/lib/cn";
 
 export type AppHeaderProps = {
@@ -12,8 +11,6 @@ export type AppHeaderProps = {
 };
 
 export function AppHeader({ className }: AppHeaderProps) {
-  const pathname = usePathname();
-
   return (
     <div
       className={cn("flex gap-4 items-center shrink-0 py-4 px-6", className)}
@@ -21,7 +18,7 @@ export function AppHeader({ className }: AppHeaderProps) {
       <SidebarTrigger className="shrink-0" />
 
       <h1 className="text-2xl font-medium grow truncate min-w-0">
-        {titleByUrl[pathname]}
+        <RouteTitle />
       </h1>
 
       <ThemeSwitcher />

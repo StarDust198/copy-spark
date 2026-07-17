@@ -2,23 +2,16 @@
 
 import { prisma } from "@/lib/prisma";
 import { Generation, GenerationStatus } from "@prisma/client";
-import { generateText, Output } from "ai";
-// import { anthropic } from "@ai-sdk/anthropic";
-// import { metadataSchema, MyUIMessage } from "@/types/generation";
-// import { tools } from "../tools";
 import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
 import { ProductDescriptionRequest } from "@/schemas/description-schema";
 import { EmailSubjectRequest } from "@/schemas/email-schema";
 import { FacebookAdRequest } from "@/schemas/facebook-schema";
 import {
-  Template,
   TemplateId,
   TemplateRequest,
   TemplateVariant,
 } from "@/constants/templates";
-import z from "zod";
-import { SYSTEM_PROMPT } from "../prompts";
 
 const model = "anthropic/claude-haiku-4.5";
 
@@ -31,72 +24,6 @@ async function getUserId() {
 
   return userId;
 }
-
-// export async function createGenerationTitle(
-//   textToSummarize: string,
-// ): Promise<string> {
-//   const { text } = await generateText({
-//     model: "anthropic/claude-haiku-4.5",
-//     system:
-//       "You are a precise text summarizer. Assume text provided is a first message of the user in a conversation and provide a concise, up to 4-5 words summary - title of the possible conversation. Do not add outside knowledge.",
-//     prompt: `Summarize the following text:\n\n${textToSummarize}`,
-//     output: Output.text(),
-//   });
-
-//   return text;
-// }
-
-async function generateVariants<TVariantSchema extends z.ZodType>({
-  prompt,
-  outputSchema,
-}: {
-  prompt: string;
-  outputSchema: TVariantSchema;
-}): Promise<{ title: string; variants: z.infer<TVariantSchema>[] }> {
-  const { output } = await generateText({
-    model,
-    system: SYSTEM_PROMPT,
-    prompt,
-    output: Output.object({
-      schema: z.object({
-        title: z.string(),
-        variants: z.array(outputSchema),
-      }),
-    }),
-  });
-
-  return output;
-}
-
-type GenerateArgs =
-  | { templateId: typeof TemplateId.facebookAd; request: FacebookAdRequest }
-  | { templateId: typeof TemplateId.emailSubject; request: EmailSubjectRequest }
-  | {
-      templateId: typeof TemplateId.productDescription;
-      request: ProductDescriptionRequest;
-    };
-
-// export async function saveGeneration({
-//   generationId,
-//   messages,
-// }: {
-//   generationId: string;
-//   messages: MyUIMessage[];
-// }): Promise<Generation> {
-//   const userId = await getUserId();
-
-//   const JSONMessages = JSON.stringify(messages, null, 2);
-
-//   return await prisma.generation.update({
-//     where: {
-//       id: generationId,
-//       userId,
-//     },
-//     data: {
-//       messages: JSONMessages,
-//     },
-//   });
-// }
 
 export async function createDBGeneration({
   userId,
@@ -120,34 +47,6 @@ export async function createDBGeneration({
       title,
       templateId,
     },
-  });
-}
-
-export async function createGeneration(
-  options: GenerateArgs,
-): Promise<Generation> {
-  const userId = await getUserId();
-
-  const template = Template[options.templateId];
-  const builtPrompt = template.buildPrompt(options.request);
-
-  if (!builtPrompt.success) {
-    throw new Error(`Invalid request for template "${options.templateId}"`, {
-      cause: builtPrompt.error,
-    });
-  }
-
-  const { title, variants } = await generateVariants({
-    prompt: builtPrompt.prompt,
-    outputSchema: template.variantSchema,
-  });
-
-  return await createDBGeneration({
-    title,
-    userId,
-    variants,
-    templateId: options.templateId,
-    request: options.request,
   });
 }
 
@@ -236,7 +135,7 @@ export async function updateGeneration({
 }) {
   const userId = await getUserId();
 
-  return await prisma.generation.update({
+  const updatedGeneration = await prisma.generation.update({
     where: {
       id,
       userId,
@@ -247,6 +146,8 @@ export async function updateGeneration({
       output: JSON.stringify(output),
     },
   });
+
+  return updatedGeneration;
 }
 
 export async function getGeneration({
@@ -292,9 +193,12 @@ export async function deleteGeneration({
 }: {
   id: string;
 }): Promise<Generation> {
+  const userId = await getUserId();
+
   return await prisma.generation.delete({
     where: {
       id,
+      userId,
     },
   });
 }
