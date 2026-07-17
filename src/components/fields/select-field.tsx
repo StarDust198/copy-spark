@@ -8,6 +8,7 @@ import {
   SelectValue,
 } from "../ui/select";
 import { BaseField } from "./base-field";
+import { cn } from "@/lib/cn";
 
 export type SelectFieldProps<
   TFieldValues extends FieldValues = FieldValues,
@@ -21,6 +22,7 @@ export type SelectFieldProps<
   children: ReactNode;
   placeholder?: string;
   getTriggerText?: (option: string) => ReactNode;
+  className?: string;
 };
 
 export function SelectField<
@@ -35,6 +37,7 @@ export function SelectField<
   getTriggerText,
   placeholder,
   children,
+  className,
 }: SelectFieldProps<TFieldValues, TName, TTransformedValues>) {
   return (
     <BaseField
@@ -49,7 +52,7 @@ export function SelectField<
             onBlur={onBlur}
             id={field.id}
             aria-invalid={field["aria-invalid"]}
-            className="w-full max-w-48"
+            className={cn("w-full max-w-48", className)}
           >
             <SelectValue placeholder={placeholder}>
               {(value) =>

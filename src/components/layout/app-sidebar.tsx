@@ -1,6 +1,7 @@
 "use client";
 
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
+import type { Generation } from "@prisma/client";
 import Link from "next/link";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import {
@@ -37,8 +38,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { EllipsisVertical, LayoutDashboardIcon, Trash2 } from "lucide-react";
+import {
+  EllipsisVertical,
+  LayoutDashboardIcon,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 import { useDeleteGeneration } from "@/lib/query/use-generation-hooks";
+import { RenameGenerationDialog } from "./rename-generation-dialog";
+import { TruncatedText } from "./truncated-text";
 
 export type AppSidebarItem = {
   title: string;
@@ -63,9 +71,9 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const { data: generations } = useQuery(generationOptions());
 
-  console.log("AppSidebar", { params });
-
   const deleteChatMutation = useDeleteGeneration();
+
+  const [renameTarget, setRenameTarget] = useState<Generation | null>(null);
 
   const isExpanded = state === "expanded";
 
@@ -163,7 +171,7 @@ export function AppSidebar() {
                         className="pr-2! group-hover/menu-item:pr-8! group-focus-within/menu-item:pr-8! group-has-aria-expanded/menu-item:pr-8!"
                         render={
                           <Link href={chatUrl}>
-                            <span className="truncate">{generation.title}</span>
+                            <TruncatedText>{generation.title}</TruncatedText>
                           </Link>
                         }
                       />
@@ -182,6 +190,13 @@ export function AppSidebar() {
                         />
 
                         <DropdownMenuContent className="min-w-24">
+                          <DropdownMenuItem
+                            onClick={() => setRenameTarget(generation)}
+                          >
+                            <Pencil />
+                            Rename
+                          </DropdownMenuItem>
+
                           <DropdownMenuItem
                             disabled={deleteChatMutation.isPending}
                             onClick={() =>
@@ -202,6 +217,15 @@ export function AppSidebar() {
           </SidebarGroup>
         </Show>
       </SidebarContent>
+
+      <RenameGenerationDialog
+        key={renameTarget?.id}
+        generation={renameTarget}
+        open={!!renameTarget}
+        onOpenChange={(open) => {
+          if (!open) setRenameTarget(null);
+        }}
+      />
     </Sidebar>
   );
 }

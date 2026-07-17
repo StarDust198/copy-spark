@@ -86,7 +86,7 @@ export function createFacebookAdPrompt(
   title: string,
 ) {
   let prompt = "\n\n### Task Instructions:\n";
-  prompt += `1. Create a clear, concise title for the generation (e.g., "XOT Yoga mat ${title}").`;
+  prompt += `1. Create a clear, concise title for the generation. Example: "Yoga mat ${title}". Try to keep it under 25 letters.`;
   prompt += `
     2. Create 5 short, punchy **${title}s**. Each variation must include a compelling hook and a clear Call to Action (CTA).\n\n
   `;

@@ -40,7 +40,7 @@ export function TextareaField<
         <Textarea
           {...field}
           placeholder={placeholder}
-          className={cn("shrink-0 min-h-20 resize-none", className)}
+          className={cn("min-h-20 resize-none", className)}
         />
       )}
     </BaseField>

@@ -1,9 +1,4 @@
 import {
-  createEmailSubjectPrompt,
-  createFacebookAdPrompt,
-  createProductDescriptionPrompt,
-} from "@/lib/prompts";
-import {
   productDescriptionRequestSchema,
   productDescriptionVariantSchema,
 } from "@/schemas/description-schema";

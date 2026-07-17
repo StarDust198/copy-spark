@@ -37,11 +37,7 @@ export function InputField<
       label={label}
     >
       {(field) => (
-        <Input
-          {...field}
-          placeholder={placeholder}
-          className={cn("shrink-0", className)}
-        />
+        <Input {...field} placeholder={placeholder} className={className} />
       )}
     </BaseField>
   );

@@ -34,7 +34,12 @@ export function CheckboxField<
       controlFirst
     >
       {({ onChange, value, ...field }) => (
-        <Checkbox {...field} checked={value} onCheckedChange={onChange} />
+        <Checkbox
+          {...field}
+          className={className}
+          checked={value}
+          onCheckedChange={onChange}
+        />
       )}
     </BaseField>
   );
