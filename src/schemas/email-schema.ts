@@ -18,6 +18,12 @@ export const emailSubjectRequestSchema = z.object({
 
 export type EmailSubjectRequest = z.infer<typeof emailSubjectRequestSchema>;
 
+export const emailSubjectFormSchema = emailSubjectRequestSchema.extend({
+  model: z.string().min(1),
+});
+
+export type EmailSubjectForm = z.infer<typeof emailSubjectFormSchema>;
+
 export const emailSubjectVariantSchema = z.object({
   subject: z.string().describe("Max ~50 characters"),
   previewText: z

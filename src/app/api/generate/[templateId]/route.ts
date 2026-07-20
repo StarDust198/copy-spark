@@ -2,7 +2,6 @@ import { streamText, Output, createTextStreamResponse, toTextStream } from "ai";
 import { z } from "zod";
 import { auth } from "@clerk/nextjs/server";
 import { buildPrompt, SYSTEM_PROMPT } from "@/lib/prompts";
-import { FREE_MODEL } from "@/constants/model";
 import { after } from "next/server";
 import { getGeneration, updateGeneration } from "@/lib/actions/generations";
 import { GenerationStatus } from "@prisma/client";
@@ -81,7 +80,7 @@ export async function POST(
   await updateGeneration({ id, status: GenerationStatus.STREAMING });
 
   const result = streamText({
-    model: FREE_MODEL,
+    model: generation.model,
     system: SYSTEM_PROMPT,
     prompt: builtPrompt.prompt,
     // built from `variantSchema` rather than reusing `template.outputSchema`:

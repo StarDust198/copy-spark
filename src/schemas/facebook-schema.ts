@@ -15,6 +15,12 @@ export const facebookAdRequestSchema = z.object({
 
 export type FacebookAdRequest = z.infer<typeof facebookAdRequestSchema>;
 
+export const facebookAdFormSchema = facebookAdRequestSchema.extend({
+  model: z.string().min(1),
+});
+
+export type FacebookAdForm = z.infer<typeof facebookAdFormSchema>;
+
 export const facebookAdVariantSchema = z.object({
   headline: z.string().describe("Max 40 characters, the bold line"),
   primaryText: z.string().describe("1-3 sentences, the main ad copy"),

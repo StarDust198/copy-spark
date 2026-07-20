@@ -15,6 +15,7 @@ export type TextareaFieldProps<
   description?: ReactNode;
   className?: string;
   placeholder?: string;
+  disabled?: boolean;
 };
 
 export function TextareaField<
@@ -28,6 +29,7 @@ export function TextareaField<
   control,
   placeholder,
   className,
+  disabled,
 }: TextareaFieldProps<TFieldValues, TName, TTransformedValues>) {
   return (
     <BaseField
@@ -41,6 +43,7 @@ export function TextareaField<
           {...field}
           placeholder={placeholder}
           className={cn("min-h-20 resize-none", className)}
+          disabled={disabled}
         />
       )}
     </BaseField>

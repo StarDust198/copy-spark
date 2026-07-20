@@ -21,6 +21,14 @@ export type ProductDescriptionRequest = z.infer<
   typeof productDescriptionRequestSchema
 >;
 
+export const productDescriptionFormSchema = productDescriptionRequestSchema.extend({
+  model: z.string().min(1),
+});
+
+export type ProductDescriptionForm = z.infer<
+  typeof productDescriptionFormSchema
+>;
+
 export const productDescriptionVariantSchema = z.object({
   description: z.string(),
 });

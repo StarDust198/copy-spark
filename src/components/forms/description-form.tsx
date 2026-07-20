@@ -4,19 +4,26 @@ import { useForm } from "react-hook-form";
 import { InputField } from "../fields/input-field";
 import { SelectField } from "../fields/select-field";
 import { TextareaField } from "../fields/textarea-field";
+import { ModelSelectorField } from "../fields/model-selector-field";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SelectItem } from "../ui/select";
 import { Tone } from "@/constants/tone";
 import { Button } from "../ui/button";
 import {
-  ProductDescriptionRequest,
-  productDescriptionRequestSchema,
+  ProductDescriptionForm,
+  productDescriptionFormSchema,
 } from "@/schemas/description-schema";
 import { Length } from "@/constants/length";
 import { useCreateProductDescriptionGeneration } from "@/lib/query/use-generation-hooks";
 import { useRouter } from "next/navigation";
 import { generateId } from "ai";
-import { FREE_MODEL } from "@/constants/model";
+import { DEFAULT_MODEL } from "@/constants/model";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "../ui/collapsible";
+import { ChevronDownIcon } from "lucide-react";
 
 export function DescriptionForm() {
   const form = useForm({
@@ -26,22 +33,27 @@ export function DescriptionForm() {
       targetAudience: "",
       length: Length.medium,
       tone: "" as const,
+      model: DEFAULT_MODEL,
     },
-    resolver: zodResolver(productDescriptionRequestSchema),
+    resolver: zodResolver(productDescriptionFormSchema),
   });
 
   const createProductDescriptionGenerationMutation =
     useCreateProductDescriptionGeneration();
   const router = useRouter();
 
-  async function onSubmit(fields: ProductDescriptionRequest) {
+  const isSubmitting = form.formState.isSubmitting;
+
+  async function onSubmit(fields: ProductDescriptionForm) {
     const id = generateId();
+
+    const { model, ...request } = fields;
 
     const generation =
       await createProductDescriptionGenerationMutation.mutateAsync({
         id,
-        request: fields,
-        model: FREE_MODEL,
+        request,
+        model,
       });
 
     router.push(`/generation/${generation.id}`);
@@ -58,6 +70,7 @@ export function DescriptionForm() {
           label="Product name"
           name="productName"
           placeholder="GripFlow yoga mat"
+          disabled={isSubmitting}
         />
 
         <TextareaField
@@ -65,6 +78,7 @@ export function DescriptionForm() {
           label="Key features (one per line)"
           name="keyFeatures"
           placeholder="Natural cork surface · 5mm cushioning · carrying strap included"
+          disabled={isSubmitting}
         />
 
         <InputField
@@ -72,6 +86,7 @@ export function DescriptionForm() {
           label="Who buys this? (optional)"
           name="targetAudience"
           placeholder="Home yoga beginners"
+          disabled={isSubmitting}
         />
 
         <SelectField
@@ -79,6 +94,7 @@ export function DescriptionForm() {
           name="length"
           label="Length"
           placeholder="Select length"
+          disabled={isSubmitting}
         >
           {Object.values(Length).map((length) => {
             return (
@@ -94,6 +110,7 @@ export function DescriptionForm() {
           name="tone"
           label="Tone"
           placeholder="Select tone"
+          disabled={isSubmitting}
         >
           {Object.values(Tone).map((tone) => {
             return (
@@ -103,9 +120,26 @@ export function DescriptionForm() {
             );
           })}
         </SelectField>
+
+        <Collapsible>
+          <CollapsibleTrigger className="flex items-center gap-2 py-1">
+            <div>Additional Settings</div>
+
+            <ChevronDownIcon size={16} />
+          </CollapsibleTrigger>
+
+          <CollapsibleContent>
+            <ModelSelectorField
+              control={form.control}
+              name="model"
+              label="Model"
+              disabled={isSubmitting}
+            />
+          </CollapsibleContent>
+        </Collapsible>
       </div>
 
-      <Button type="submit" disabled={form.formState.isSubmitting}>
+      <Button type="submit" disabled={isSubmitting}>
         Generate
       </Button>
     </form>

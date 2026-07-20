@@ -6,16 +6,23 @@ import { SelectItem } from "../ui/select";
 import { SelectField } from "../fields/select-field";
 import { InputField } from "../fields/input-field";
 import { TextareaField } from "../fields/textarea-field";
+import { ModelSelectorField } from "../fields/model-selector-field";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  FacebookAdRequest,
-  facebookAdRequestSchema,
+  FacebookAdForm,
+  facebookAdFormSchema,
 } from "@/schemas/facebook-schema";
 import { Button } from "../ui/button";
 import { useCreateFacebookAdGeneration } from "@/lib/query/use-generation-hooks";
 import { useRouter } from "next/navigation";
 import { generateId } from "ai";
-import { FREE_MODEL } from "@/constants/model";
+import { DEFAULT_MODEL } from "@/constants/model";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "../ui/collapsible";
+import { ChevronDownIcon } from "lucide-react";
 
 export function FacebookForm() {
   const form = useForm({
@@ -25,20 +32,25 @@ export function FacebookForm() {
       targetAudience: "",
       tone: "",
       specialOffer: "",
+      model: DEFAULT_MODEL,
     },
-    resolver: zodResolver(facebookAdRequestSchema),
+    resolver: zodResolver(facebookAdFormSchema),
   });
 
   const createFacebookAdGenerationMutation = useCreateFacebookAdGeneration();
   const router = useRouter();
 
-  async function onSubmit(fields: FacebookAdRequest) {
+  const isSubmitting = form.formState.isSubmitting;
+
+  async function onSubmit(fields: FacebookAdForm) {
     const id = generateId();
+
+    const { model, ...request } = fields;
 
     const generation = await createFacebookAdGenerationMutation.mutateAsync({
       id,
-      request: fields,
-      model: FREE_MODEL,
+      request,
+      model,
     });
 
     router.push(`/generation/${generation.id}`);
@@ -55,6 +67,7 @@ export function FacebookForm() {
           label="Product name"
           name="productName"
           placeholder="GripFlow yoga mat"
+          disabled={isSubmitting}
         />
 
         <TextareaField
@@ -62,6 +75,7 @@ export function FacebookForm() {
           label="What is it and what makes it good?"
           name="productDescription"
           placeholder="A non-slip cork yoga mat with extra cushioning for home workouts"
+          disabled={isSubmitting}
         />
 
         <InputField
@@ -69,6 +83,7 @@ export function FacebookForm() {
           label="Who is this ad for?"
           name="targetAudience"
           placeholder="Busy moms who do yoga at home"
+          disabled={isSubmitting}
         />
 
         <SelectField
@@ -76,6 +91,7 @@ export function FacebookForm() {
           name="tone"
           label="Tone"
           placeholder="Select tone"
+          disabled={isSubmitting}
         >
           {Object.values(Tone).map((tone) => {
             return (
@@ -91,10 +107,29 @@ export function FacebookForm() {
           label="Special offer (optional)"
           name="specialOffer"
           placeholder="20% off this week"
+          disabled={isSubmitting}
         />
+
+        <Collapsible>
+          <CollapsibleTrigger className="flex items-center gap-2 py-1">
+            <div>Additional Settings</div>
+
+            <ChevronDownIcon size={16} />
+          </CollapsibleTrigger>
+
+          <CollapsibleContent>
+            <ModelSelectorField
+              control={form.control}
+              className="max-w-48"
+              name="model"
+              label="Model"
+              disabled={isSubmitting}
+            />
+          </CollapsibleContent>
+        </Collapsible>
       </div>
 
-      <Button type="submit" disabled={form.formState.isSubmitting}>
+      <Button type="submit" disabled={isSubmitting}>
         Generate
       </Button>
     </form>

@@ -23,6 +23,7 @@ export type SelectFieldProps<
   placeholder?: string;
   getTriggerText?: (option: string) => ReactNode;
   className?: string;
+  disabled?: boolean;
 };
 
 export function SelectField<
@@ -38,6 +39,7 @@ export function SelectField<
   placeholder,
   children,
   className,
+  disabled,
 }: SelectFieldProps<TFieldValues, TName, TTransformedValues>) {
   return (
     <BaseField
@@ -47,7 +49,7 @@ export function SelectField<
       label={label}
     >
       {({ onChange, onBlur, ...field }) => (
-        <Select {...field} onValueChange={onChange}>
+        <Select {...field} onValueChange={onChange} disabled={disabled}>
           <SelectTrigger
             onBlur={onBlur}
             id={field.id}

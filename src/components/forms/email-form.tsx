@@ -3,20 +3,27 @@
 import { useForm } from "react-hook-form";
 import { TextareaField } from "../fields/textarea-field";
 import { SelectField } from "../fields/select-field";
+import { ModelSelectorField } from "../fields/model-selector-field";
 import { Tone } from "@/constants/tone";
 import { SelectItem } from "../ui/select";
 import { Button } from "../ui/button";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  EmailSubjectRequest,
-  emailSubjectRequestSchema,
+  EmailSubjectForm,
+  emailSubjectFormSchema,
 } from "@/schemas/email-schema";
 import { CheckboxField } from "../fields/checkbox-field";
 import { EmailGoal } from "@/constants/emailGoal";
 import { useCreateEmailSubjectGeneration } from "@/lib/query/use-generation-hooks";
 import { useRouter } from "next/navigation";
 import { generateId } from "ai";
-import { FREE_MODEL } from "@/constants/model";
+import { DEFAULT_MODEL } from "@/constants/model";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "../ui/collapsible";
+import { ChevronDownIcon } from "lucide-react";
 
 export function EmailForm() {
   const form = useForm({
@@ -25,21 +32,26 @@ export function EmailForm() {
       emailSummary: "",
       tone: "" as const,
       includeEmoji: false,
+      model: DEFAULT_MODEL,
     },
-    resolver: zodResolver(emailSubjectRequestSchema),
+    resolver: zodResolver(emailSubjectFormSchema),
   });
 
   const createEmailSubjectGenerationMutation =
     useCreateEmailSubjectGeneration();
   const router = useRouter();
 
-  async function onSubmit(fields: EmailSubjectRequest) {
+  const isSubmitting = form.formState.isSubmitting;
+
+  async function onSubmit(fields: EmailSubjectForm) {
     const id = generateId();
+
+    const { model, ...request } = fields;
 
     const generation = await createEmailSubjectGenerationMutation.mutateAsync({
       id,
-      request: fields,
-      model: FREE_MODEL,
+      request,
+      model,
     });
 
     router.push(`/generation/${generation.id}`);
@@ -56,6 +68,7 @@ export function EmailForm() {
           name="emailGoal"
           label="What kind of email?"
           placeholder="Select kind of email"
+          disabled={isSubmitting}
         >
           {Object.values(EmailGoal).map((emailGoal) => {
             return (
@@ -71,6 +84,7 @@ export function EmailForm() {
           label="What's the email about?"
           name="emailSummary"
           placeholder="Spring sale — all yoga gear 20% off until Sunday"
+          disabled={isSubmitting}
         />
 
         <SelectField
@@ -78,6 +92,7 @@ export function EmailForm() {
           name="tone"
           label="Tone"
           placeholder="Select tone"
+          disabled={isSubmitting}
         >
           {Object.values(Tone).map((tone) => {
             return (
@@ -92,10 +107,29 @@ export function EmailForm() {
           control={form.control}
           name="includeEmoji"
           label="Include emoji variants"
+          disabled={isSubmitting}
         />
+
+        <Collapsible>
+          <CollapsibleTrigger className="flex items-center gap-2 py-1">
+            <div>Additional Settings</div>
+
+            <ChevronDownIcon size={16} />
+          </CollapsibleTrigger>
+
+          <CollapsibleContent>
+            <ModelSelectorField
+              control={form.control}
+              className="max-w-48"
+              name="model"
+              label="Model"
+              disabled={isSubmitting}
+            />
+          </CollapsibleContent>
+        </Collapsible>
       </div>
 
-      <Button type="submit" disabled={form.formState.isSubmitting}>
+      <Button type="submit" disabled={isSubmitting}>
         Generate
       </Button>
     </form>

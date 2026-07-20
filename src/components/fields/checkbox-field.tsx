@@ -13,6 +13,7 @@ export type CheckboxFieldProps<
   label?: ReactNode;
   description?: ReactNode;
   className?: string;
+  disabled?: boolean;
 };
 
 export function CheckboxField<
@@ -24,6 +25,7 @@ export function CheckboxField<
   label,
   control,
   className,
+  disabled,
 }: CheckboxFieldProps<TFieldValues, TName, TTransformedValues>) {
   return (
     <BaseField
@@ -39,6 +41,7 @@ export function CheckboxField<
           className={className}
           checked={value}
           onCheckedChange={onChange}
+          disabled={disabled}
         />
       )}
     </BaseField>

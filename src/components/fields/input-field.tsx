@@ -1,7 +1,6 @@
 import { ReactNode } from "react";
 import { ControllerProps, FieldPath, FieldValues } from "react-hook-form";
 import { BaseField } from "./base-field";
-import { cn } from "@/lib/cn";
 import { Input } from "../ui/input";
 
 export type InputFieldProps<
@@ -15,6 +14,7 @@ export type InputFieldProps<
   description?: ReactNode;
   className?: string;
   placeholder?: string;
+  disabled?: boolean;
 };
 
 export function InputField<
@@ -28,6 +28,7 @@ export function InputField<
   control,
   className,
   placeholder,
+  disabled,
 }: InputFieldProps<TFieldValues, TName, TTransformedValues>) {
   return (
     <BaseField
@@ -37,7 +38,12 @@ export function InputField<
       label={label}
     >
       {(field) => (
-        <Input {...field} placeholder={placeholder} className={className} />
+        <Input
+          {...field}
+          placeholder={placeholder}
+          className={className}
+          disabled={disabled}
+        />
       )}
     </BaseField>
   );
