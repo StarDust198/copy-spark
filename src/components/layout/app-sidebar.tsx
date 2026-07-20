@@ -165,6 +165,7 @@ export function AppSidebar() {
                       key={generation.id}
                       className="flex items-center gap-2 justify-between"
                     >
+                      {/* TODO: Fix double tooltip on collapsed sidebar state  */}
                       <SidebarMenuButton
                         tooltip={generation.title}
                         isActive={isActiveChat}

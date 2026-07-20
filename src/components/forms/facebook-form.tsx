@@ -1,6 +1,8 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { DefaultValues, useForm } from "react-hook-form";
+import { ReactNode } from "react";
+import z from "zod";
 import { Tone } from "@/constants/tone";
 import { SelectItem } from "../ui/select";
 import { SelectField } from "../fields/select-field";
@@ -12,49 +14,44 @@ import {
   FacebookAdForm,
   facebookAdFormSchema,
 } from "@/schemas/facebook-schema";
-import { Button } from "../ui/button";
-import { useCreateFacebookAdGeneration } from "@/lib/query/use-generation-hooks";
-import { useRouter } from "next/navigation";
-import { generateId } from "ai";
 import { DEFAULT_MODEL } from "@/constants/model";
 import {
   Collapsible,
   CollapsibleContent,
-  CollapsibleTrigger,
+  CollapsibleChevronTrigger,
 } from "../ui/collapsible";
-import { ChevronDownIcon } from "lucide-react";
 
-export function FacebookForm() {
+type FacebookFormValues = z.input<typeof facebookAdFormSchema>;
+
+const FACEBOOK_FORM_DEFAULTS: FacebookFormValues = {
+  productName: "",
+  productDescription: "",
+  targetAudience: "",
+  tone: "",
+  specialOffer: "",
+  model: DEFAULT_MODEL,
+};
+
+type FacebookFormProps = {
+  defaultValues?: DefaultValues<FacebookFormValues>;
+  disabled?: boolean;
+  onSubmit: (fields: FacebookAdForm) => void | Promise<void>;
+  children?: (state: { isSubmitting: boolean }) => ReactNode;
+};
+
+export function FacebookForm({
+  defaultValues,
+  disabled,
+  onSubmit,
+  children,
+}: FacebookFormProps) {
   const form = useForm({
-    defaultValues: {
-      productName: "",
-      productDescription: "",
-      targetAudience: "",
-      tone: "",
-      specialOffer: "",
-      model: DEFAULT_MODEL,
-    },
+    defaultValues: { ...FACEBOOK_FORM_DEFAULTS, ...defaultValues },
     resolver: zodResolver(facebookAdFormSchema),
   });
 
-  const createFacebookAdGenerationMutation = useCreateFacebookAdGeneration();
-  const router = useRouter();
-
   const isSubmitting = form.formState.isSubmitting;
-
-  async function onSubmit(fields: FacebookAdForm) {
-    const id = generateId();
-
-    const { model, ...request } = fields;
-
-    const generation = await createFacebookAdGenerationMutation.mutateAsync({
-      id,
-      request,
-      model,
-    });
-
-    router.push(`/generation/${generation.id}`);
-  }
+  const isDisabled = disabled || isSubmitting;
 
   return (
     <form
@@ -67,7 +64,7 @@ export function FacebookForm() {
           label="Product name"
           name="productName"
           placeholder="GripFlow yoga mat"
-          disabled={isSubmitting}
+          disabled={isDisabled}
         />
 
         <TextareaField
@@ -75,7 +72,7 @@ export function FacebookForm() {
           label="What is it and what makes it good?"
           name="productDescription"
           placeholder="A non-slip cork yoga mat with extra cushioning for home workouts"
-          disabled={isSubmitting}
+          disabled={isDisabled}
         />
 
         <InputField
@@ -83,7 +80,7 @@ export function FacebookForm() {
           label="Who is this ad for?"
           name="targetAudience"
           placeholder="Busy moms who do yoga at home"
-          disabled={isSubmitting}
+          disabled={isDisabled}
         />
 
         <SelectField
@@ -91,7 +88,7 @@ export function FacebookForm() {
           name="tone"
           label="Tone"
           placeholder="Select tone"
-          disabled={isSubmitting}
+          disabled={isDisabled}
         >
           {Object.values(Tone).map((tone) => {
             return (
@@ -107,15 +104,11 @@ export function FacebookForm() {
           label="Special offer (optional)"
           name="specialOffer"
           placeholder="20% off this week"
-          disabled={isSubmitting}
+          disabled={isDisabled}
         />
 
         <Collapsible>
-          <CollapsibleTrigger className="flex items-center gap-2 py-1">
-            <div>Additional Settings</div>
-
-            <ChevronDownIcon size={16} />
-          </CollapsibleTrigger>
+          <CollapsibleChevronTrigger title="Additional Settings" />
 
           <CollapsibleContent>
             <ModelSelectorField
@@ -123,15 +116,13 @@ export function FacebookForm() {
               className="max-w-48"
               name="model"
               label="Model"
-              disabled={isSubmitting}
+              disabled={isDisabled}
             />
           </CollapsibleContent>
         </Collapsible>
       </div>
 
-      <Button type="submit" disabled={isSubmitting}>
-        Generate
-      </Button>
+      {children?.({ isSubmitting })}
     </form>
   );
 }

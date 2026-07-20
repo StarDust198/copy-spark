@@ -1,12 +1,13 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { DefaultValues, useForm } from "react-hook-form";
+import { ReactNode } from "react";
+import z from "zod";
 import { TextareaField } from "../fields/textarea-field";
 import { SelectField } from "../fields/select-field";
 import { ModelSelectorField } from "../fields/model-selector-field";
 import { Tone } from "@/constants/tone";
 import { SelectItem } from "../ui/select";
-import { Button } from "../ui/button";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   EmailSubjectForm,
@@ -14,48 +15,43 @@ import {
 } from "@/schemas/email-schema";
 import { CheckboxField } from "../fields/checkbox-field";
 import { EmailGoal } from "@/constants/emailGoal";
-import { useCreateEmailSubjectGeneration } from "@/lib/query/use-generation-hooks";
-import { useRouter } from "next/navigation";
-import { generateId } from "ai";
 import { DEFAULT_MODEL } from "@/constants/model";
 import {
   Collapsible,
   CollapsibleContent,
-  CollapsibleTrigger,
+  CollapsibleChevronTrigger,
 } from "../ui/collapsible";
-import { ChevronDownIcon } from "lucide-react";
 
-export function EmailForm() {
+type EmailFormValues = z.input<typeof emailSubjectFormSchema>;
+
+const EMAIL_FORM_DEFAULTS: EmailFormValues = {
+  emailGoal: "",
+  emailSummary: "",
+  tone: "",
+  includeEmoji: false,
+  model: DEFAULT_MODEL,
+};
+
+type EmailFormProps = {
+  defaultValues?: DefaultValues<EmailFormValues>;
+  disabled?: boolean;
+  onSubmit: (fields: EmailSubjectForm) => void | Promise<void>;
+  children?: (state: { isSubmitting: boolean }) => ReactNode;
+};
+
+export function EmailForm({
+  defaultValues,
+  disabled,
+  onSubmit,
+  children,
+}: EmailFormProps) {
   const form = useForm({
-    defaultValues: {
-      emailGoal: "" as const,
-      emailSummary: "",
-      tone: "" as const,
-      includeEmoji: false,
-      model: DEFAULT_MODEL,
-    },
+    defaultValues: { ...EMAIL_FORM_DEFAULTS, ...defaultValues },
     resolver: zodResolver(emailSubjectFormSchema),
   });
 
-  const createEmailSubjectGenerationMutation =
-    useCreateEmailSubjectGeneration();
-  const router = useRouter();
-
   const isSubmitting = form.formState.isSubmitting;
-
-  async function onSubmit(fields: EmailSubjectForm) {
-    const id = generateId();
-
-    const { model, ...request } = fields;
-
-    const generation = await createEmailSubjectGenerationMutation.mutateAsync({
-      id,
-      request,
-      model,
-    });
-
-    router.push(`/generation/${generation.id}`);
-  }
+  const isDisabled = disabled || isSubmitting;
 
   return (
     <form
@@ -68,7 +64,7 @@ export function EmailForm() {
           name="emailGoal"
           label="What kind of email?"
           placeholder="Select kind of email"
-          disabled={isSubmitting}
+          disabled={isDisabled}
         >
           {Object.values(EmailGoal).map((emailGoal) => {
             return (
@@ -84,7 +80,7 @@ export function EmailForm() {
           label="What's the email about?"
           name="emailSummary"
           placeholder="Spring sale — all yoga gear 20% off until Sunday"
-          disabled={isSubmitting}
+          disabled={isDisabled}
         />
 
         <SelectField
@@ -92,7 +88,7 @@ export function EmailForm() {
           name="tone"
           label="Tone"
           placeholder="Select tone"
-          disabled={isSubmitting}
+          disabled={isDisabled}
         >
           {Object.values(Tone).map((tone) => {
             return (
@@ -107,15 +103,11 @@ export function EmailForm() {
           control={form.control}
           name="includeEmoji"
           label="Include emoji variants"
-          disabled={isSubmitting}
+          disabled={isDisabled}
         />
 
         <Collapsible>
-          <CollapsibleTrigger className="flex items-center gap-2 py-1">
-            <div>Additional Settings</div>
-
-            <ChevronDownIcon size={16} />
-          </CollapsibleTrigger>
+          <CollapsibleChevronTrigger title="Additional Settings" />
 
           <CollapsibleContent>
             <ModelSelectorField
@@ -123,15 +115,13 @@ export function EmailForm() {
               className="max-w-48"
               name="model"
               label="Model"
-              disabled={isSubmitting}
+              disabled={isDisabled}
             />
           </CollapsibleContent>
         </Collapsible>
       </div>
 
-      <Button type="submit" disabled={isSubmitting}>
-        Generate
-      </Button>
+      {children?.({ isSubmitting })}
     </form>
   );
 }

@@ -1,6 +1,8 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { DefaultValues, useForm } from "react-hook-form";
+import { ReactNode } from "react";
+import z from "zod";
 import { InputField } from "../fields/input-field";
 import { SelectField } from "../fields/select-field";
 import { TextareaField } from "../fields/textarea-field";
@@ -8,56 +10,49 @@ import { ModelSelectorField } from "../fields/model-selector-field";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SelectItem } from "../ui/select";
 import { Tone } from "@/constants/tone";
-import { Button } from "../ui/button";
 import {
   ProductDescriptionForm,
   productDescriptionFormSchema,
 } from "@/schemas/description-schema";
 import { Length } from "@/constants/length";
-import { useCreateProductDescriptionGeneration } from "@/lib/query/use-generation-hooks";
-import { useRouter } from "next/navigation";
-import { generateId } from "ai";
 import { DEFAULT_MODEL } from "@/constants/model";
 import {
   Collapsible,
   CollapsibleContent,
-  CollapsibleTrigger,
+  CollapsibleChevronTrigger,
 } from "../ui/collapsible";
-import { ChevronDownIcon } from "lucide-react";
 
-export function DescriptionForm() {
+type DescriptionFormValues = z.input<typeof productDescriptionFormSchema>;
+
+const DESCRIPTION_FORM_DEFAULTS: DescriptionFormValues = {
+  productName: "",
+  keyFeatures: "",
+  targetAudience: "",
+  length: Length.medium,
+  tone: "",
+  model: DEFAULT_MODEL,
+};
+
+type DescriptionFormProps = {
+  defaultValues?: DefaultValues<DescriptionFormValues>;
+  disabled?: boolean;
+  onSubmit: (fields: ProductDescriptionForm) => void | Promise<void>;
+  children?: (state: { isSubmitting: boolean }) => ReactNode;
+};
+
+export function DescriptionForm({
+  defaultValues,
+  disabled,
+  onSubmit,
+  children,
+}: DescriptionFormProps) {
   const form = useForm({
-    defaultValues: {
-      productName: "",
-      keyFeatures: "",
-      targetAudience: "",
-      length: Length.medium,
-      tone: "" as const,
-      model: DEFAULT_MODEL,
-    },
+    defaultValues: { ...DESCRIPTION_FORM_DEFAULTS, ...defaultValues },
     resolver: zodResolver(productDescriptionFormSchema),
   });
 
-  const createProductDescriptionGenerationMutation =
-    useCreateProductDescriptionGeneration();
-  const router = useRouter();
-
   const isSubmitting = form.formState.isSubmitting;
-
-  async function onSubmit(fields: ProductDescriptionForm) {
-    const id = generateId();
-
-    const { model, ...request } = fields;
-
-    const generation =
-      await createProductDescriptionGenerationMutation.mutateAsync({
-        id,
-        request,
-        model,
-      });
-
-    router.push(`/generation/${generation.id}`);
-  }
+  const isDisabled = disabled || isSubmitting;
 
   return (
     <form
@@ -70,7 +65,7 @@ export function DescriptionForm() {
           label="Product name"
           name="productName"
           placeholder="GripFlow yoga mat"
-          disabled={isSubmitting}
+          disabled={isDisabled}
         />
 
         <TextareaField
@@ -78,7 +73,7 @@ export function DescriptionForm() {
           label="Key features (one per line)"
           name="keyFeatures"
           placeholder="Natural cork surface · 5mm cushioning · carrying strap included"
-          disabled={isSubmitting}
+          disabled={isDisabled}
         />
 
         <InputField
@@ -86,7 +81,7 @@ export function DescriptionForm() {
           label="Who buys this? (optional)"
           name="targetAudience"
           placeholder="Home yoga beginners"
-          disabled={isSubmitting}
+          disabled={isDisabled}
         />
 
         <SelectField
@@ -94,7 +89,7 @@ export function DescriptionForm() {
           name="length"
           label="Length"
           placeholder="Select length"
-          disabled={isSubmitting}
+          disabled={isDisabled}
         >
           {Object.values(Length).map((length) => {
             return (
@@ -110,7 +105,7 @@ export function DescriptionForm() {
           name="tone"
           label="Tone"
           placeholder="Select tone"
-          disabled={isSubmitting}
+          disabled={isDisabled}
         >
           {Object.values(Tone).map((tone) => {
             return (
@@ -122,26 +117,20 @@ export function DescriptionForm() {
         </SelectField>
 
         <Collapsible>
-          <CollapsibleTrigger className="flex items-center gap-2 py-1">
-            <div>Additional Settings</div>
-
-            <ChevronDownIcon size={16} />
-          </CollapsibleTrigger>
+          <CollapsibleChevronTrigger title="Additional Settings" />
 
           <CollapsibleContent>
             <ModelSelectorField
               control={form.control}
               name="model"
               label="Model"
-              disabled={isSubmitting}
+              disabled={isDisabled}
             />
           </CollapsibleContent>
         </Collapsible>
       </div>
 
-      <Button type="submit" disabled={isSubmitting}>
-        Generate
-      </Button>
+      {children?.({ isSubmitting })}
     </form>
   );
 }
