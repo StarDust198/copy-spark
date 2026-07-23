@@ -68,7 +68,15 @@ export async function POST(
     );
   }
 
-  await updateGeneration({ id, userId, status: GenerationStatus.STREAMING });
+  // Every run passes through here — including the streamer's instant regenerate,
+  // which never touches the DB from the client — so this is the one place that can
+  // guarantee the picked variant is dropped before new variants replace it.
+  await updateGeneration({
+    id,
+    userId,
+    status: GenerationStatus.STREAMING,
+    favorite: null,
+  });
 
   const result = streamText({
     model: generation.model,

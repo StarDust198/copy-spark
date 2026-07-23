@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Generation } from "@prisma/client";
 import { GenerationStatus } from "@prisma/client";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import type { EditGenerationFormValues } from "@/components/forms";
 import {
   createEmailSubjectGeneration,
@@ -83,6 +85,7 @@ export function useRegenerateGeneration(generationId: string) {
     await updateGenerationMutation.mutateAsync({
       id: generationId,
       status: GenerationStatus.PENDING,
+      favorite: null,
     });
 
     router.refresh();
@@ -96,6 +99,7 @@ export function useRegenerateGeneration(generationId: string) {
       input,
       model,
       status: GenerationStatus.PENDING,
+      favorite: null,
     });
 
     router.refresh();
@@ -106,6 +110,38 @@ export function useRegenerateGeneration(generationId: string) {
     editRegenerate,
     isPending: updateGenerationMutation.isPending,
   };
+}
+
+export function useFavoriteVariant(
+  generationId: string,
+  initialFavorite: number | null,
+) {
+  const updateGenerationMutation = useUpdateGeneration();
+  const [favorite, setFavorite] = useState(initialFavorite);
+
+  // Optimistic: the star flips right away and rolls back if the write fails.
+  async function toggleFavorite(index: number) {
+    const previous = favorite;
+    const next = favorite === index ? null : index;
+
+    setFavorite(next);
+
+    try {
+      await updateGenerationMutation.mutateAsync({
+        id: generationId,
+        favorite: next,
+      });
+    } catch {
+      setFavorite(previous);
+      toast.error("Could not save your pick");
+    }
+  }
+
+  function resetFavorite() {
+    setFavorite(null);
+  }
+
+  return { favorite, toggleFavorite, resetFavorite };
 }
 
 export function useDeleteGeneration() {

@@ -11,7 +11,7 @@ import {
   TemplateRequest,
   TemplateVariant,
 } from "@/constants/templates";
-import { modelIdSchema } from "@/schemas/generation";
+import { favoriteIndexSchema, modelIdSchema } from "@/schemas/generation";
 import * as db from "@/lib/db/generations";
 
 async function getUserId() {
@@ -94,6 +94,7 @@ export async function updateGeneration({
   output,
   input,
   model,
+  favorite,
 }: {
   id: string;
   status?: GenerationStatus;
@@ -101,6 +102,7 @@ export async function updateGeneration({
   title?: string;
   input?: TemplateRequest;
   model?: string;
+  favorite?: number | null;
 }) {
   const userId = await getUserId();
 
@@ -112,6 +114,7 @@ export async function updateGeneration({
     output,
     input,
     model: modelIdSchema.optional().parse(model),
+    favorite: favoriteIndexSchema.nullish().parse(favorite),
   });
 }
 

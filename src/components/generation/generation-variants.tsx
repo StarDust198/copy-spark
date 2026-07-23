@@ -7,6 +7,9 @@ import { Button } from "../ui/button";
 type GenerationVariantsProps = {
   variants: Record<string, string>[];
   fields: TemplateField[];
+  favorite: number | null;
+  favoriteDisabled?: boolean;
+  onToggleFavorite: (index: number) => void;
   actions?: ReactNode;
   error?: boolean;
   onRetry?: () => void;
@@ -15,6 +18,9 @@ type GenerationVariantsProps = {
 export function GenerationVariants({
   variants,
   fields,
+  favorite,
+  favoriteDisabled,
+  onToggleFavorite,
   actions,
   error,
   onRetry,
@@ -39,6 +45,9 @@ export function GenerationVariants({
             index={index}
             variant={variant}
             fields={fields}
+            isFavorite={favorite === index}
+            disabled={favoriteDisabled}
+            onToggleFavorite={() => onToggleFavorite(index)}
           />
         ))}
       </div>

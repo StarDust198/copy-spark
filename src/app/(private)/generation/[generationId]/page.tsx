@@ -73,6 +73,7 @@ export default async function Page(
             variants={variants.data}
             input={generation.input}
             model={generation.model}
+            favorite={generation.favorite}
           />
         );
       }

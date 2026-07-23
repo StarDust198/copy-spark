@@ -5,7 +5,10 @@ import { GenerationStatus } from "@prisma/client";
 
 import { type EditGenerationFormValues } from "@/components/forms";
 import { Template, TemplateId } from "@/constants/templates";
-import { useUpdateGeneration } from "@/lib/query/use-generation-hooks";
+import {
+  useFavoriteVariant,
+  useUpdateGeneration,
+} from "@/lib/query/use-generation-hooks";
 import { GenerationActions } from "./generation-actions";
 import { GenerationVariants } from "./generation-variants";
 
@@ -15,6 +18,7 @@ type GenerationResultProps = {
   variants: Record<string, string>[];
   input: unknown;
   model: string;
+  favorite: number | null;
 };
 
 export function GenerationResult({
@@ -23,8 +27,13 @@ export function GenerationResult({
   variants,
   input,
   model,
+  favorite,
 }: GenerationResultProps) {
   const updateGenerationMutation = useUpdateGeneration();
+  const { favorite: pickedVariant, toggleFavorite } = useFavoriteVariant(
+    generationId,
+    favorite,
+  );
   const router = useRouter();
 
   const template = Template[templateId];
@@ -35,6 +44,7 @@ export function GenerationResult({
     await updateGenerationMutation.mutateAsync({
       id: generationId,
       status: GenerationStatus.PENDING,
+      favorite: null,
     });
 
     router.refresh();
@@ -48,6 +58,7 @@ export function GenerationResult({
       input: nextInput,
       model: nextModel,
       status: GenerationStatus.PENDING,
+      favorite: null,
     });
 
     router.refresh();
@@ -57,6 +68,8 @@ export function GenerationResult({
     <GenerationVariants
       variants={variants}
       fields={template.fields}
+      favorite={pickedVariant}
+      onToggleFavorite={toggleFavorite}
       actions={
         <GenerationActions
           templateId={templateId}

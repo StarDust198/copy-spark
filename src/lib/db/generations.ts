@@ -44,6 +44,7 @@ export async function updateGeneration({
   output,
   input,
   model,
+  favorite,
 }: {
   id: string;
   userId: string;
@@ -52,6 +53,7 @@ export async function updateGeneration({
   title?: string;
   input?: TemplateRequest;
   model?: string;
+  favorite?: number | null;
 }) {
   return await prisma.generation.update({
     where: {
@@ -62,6 +64,8 @@ export async function updateGeneration({
       title,
       status,
       model,
+      // `null` clears the picked variant, `undefined` leaves it as it is.
+      favorite,
       // `undefined` means "leave this column alone" to Prisma — both fields have
       // to stay undefined when not supplied, or a title-only update wipes them.
       input,

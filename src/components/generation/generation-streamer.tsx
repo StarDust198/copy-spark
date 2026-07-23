@@ -6,7 +6,10 @@ import z from "zod";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { generationOptions } from "@/lib/query/generations-options";
-import { useUpdateGeneration } from "@/lib/query/use-generation-hooks";
+import {
+  useFavoriteVariant,
+  useUpdateGeneration,
+} from "@/lib/query/use-generation-hooks";
 import { GenerationStatus } from "@prisma/client";
 import {
   EditGenerationForm,
@@ -33,6 +36,13 @@ export function GenerationStreamer({
   const queryClient = useQueryClient();
   const router = useRouter();
   const updateGenerationMutation = useUpdateGeneration();
+
+  // A stream always starts from a cleared pick — the API route resets the column
+  // when it flips the row to STREAMING.
+  const { favorite, toggleFavorite, resetFavorite } = useFavoriteVariant(
+    id,
+    null,
+  );
 
   const [stopped, setStopped] = useState(false);
 
@@ -66,10 +76,12 @@ export function GenerationStreamer({
       input: nextInput,
       model: nextModel,
       status: GenerationStatus.PENDING,
+      favorite: null,
     });
 
     setRequest({ input: nextInput, model: nextModel });
     setStopped(false);
+    resetFavorite();
     submit({ id });
   }
 
@@ -77,6 +89,7 @@ export function GenerationStreamer({
   // regenerate only has to re-submit.
   function handleInstantRegenerate() {
     setStopped(false);
+    resetFavorite();
     submit({ id });
   }
 
@@ -151,6 +164,10 @@ export function GenerationStreamer({
     <GenerationVariants
       variants={typedVariants.data}
       fields={template.fields}
+      favorite={favorite}
+      // Picking only makes sense once the variants have stopped changing.
+      favoriteDisabled={isLoading}
+      onToggleFavorite={toggleFavorite}
       actions={
         <GenerationActions
           templateId={templateId}
