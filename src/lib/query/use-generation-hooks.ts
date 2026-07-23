@@ -1,5 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Generation } from "@prisma/client";
+import { GenerationStatus } from "@prisma/client";
+import { useRouter } from "next/navigation";
+import type { EditGenerationFormValues } from "@/components/forms";
 import {
   createEmailSubjectGeneration,
   createFacebookAdGeneration,
@@ -68,6 +71,41 @@ export function useUpdateGeneration() {
       );
     },
   });
+}
+
+// Moving back to PENDING hands the page over to `GenerationStreamer`, which
+// mounts fresh on refresh and starts the stream.
+export function useRegenerateGeneration(generationId: string) {
+  const updateGenerationMutation = useUpdateGeneration();
+  const router = useRouter();
+
+  async function regenerate() {
+    await updateGenerationMutation.mutateAsync({
+      id: generationId,
+      status: GenerationStatus.PENDING,
+    });
+
+    router.refresh();
+  }
+
+  async function editRegenerate(fields: EditGenerationFormValues) {
+    const { model, ...input } = fields;
+
+    await updateGenerationMutation.mutateAsync({
+      id: generationId,
+      input,
+      model,
+      status: GenerationStatus.PENDING,
+    });
+
+    router.refresh();
+  }
+
+  return {
+    regenerate,
+    editRegenerate,
+    isPending: updateGenerationMutation.isPending,
+  };
 }
 
 export function useDeleteGeneration() {

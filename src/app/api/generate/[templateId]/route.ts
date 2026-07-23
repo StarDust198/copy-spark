@@ -78,7 +78,7 @@ export async function POST(
       schema: getOutputSchema(template.variantSchema),
     }),
     onError: (error) => {
-      console.error("onError", error);
+      console.log("onError", { error });
     },
     onAbort: ({ steps }) => {
       console.log("onAbort", { steps });

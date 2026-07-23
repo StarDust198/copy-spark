@@ -19,7 +19,7 @@ export function EditGenerationFacebookForm({
   input: unknown;
   model: string;
   disabled: boolean;
-  onStop: () => void;
+  onStop?: () => void;
   onSubmit: (fields: FacebookAdForm) => void | Promise<void>;
 }) {
   const parsed = facebookAdRequestSchema.safeParse(input);

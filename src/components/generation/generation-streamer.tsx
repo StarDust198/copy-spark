@@ -3,7 +3,7 @@
 import { Template, TemplateId } from "@/constants/templates";
 import { useObject } from "@ai-sdk/react";
 import z from "zod";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { generationOptions } from "@/lib/query/generations-options";
 import { useUpdateGeneration } from "@/lib/query/use-generation-hooks";
@@ -12,11 +12,12 @@ import {
   EditGenerationForm,
   type EditGenerationFormValues,
 } from "@/components/forms";
+import { GenerationActions } from "./generation-actions";
+import { GenerationErrorActions } from "./generation-error-actions";
 import { GenerationFormWrapper } from "./generation-form-wrapper";
 import { GenerationVariants } from "./generation-variants";
 import { useRouter } from "next/navigation";
 import { ErrorMessage } from "../layout/error-message";
-import { Button } from "@base-ui/react";
 
 export function GenerationStreamer({
   templateId,
@@ -35,6 +36,14 @@ export function GenerationStreamer({
 
   const [stopped, setStopped] = useState(false);
 
+  // The `input`/`model` props are the server-rendered values. Regenerating from
+  // here does not refresh the route, so keep the last submitted request around
+  // for the form and the edit dialog.
+  const [request, setRequest] = useState<{ input: unknown; model: string }>({
+    input,
+    model,
+  });
+
   const template = Template[templateId];
 
   const { object, submit, isLoading, error, stop } = useObject({
@@ -43,43 +52,51 @@ export function GenerationStreamer({
     onFinish: ({ error }) => {
       queryClient.invalidateQueries(generationOptions());
 
-      console.log("onFinish", { error });
-
       if (!error) return;
 
       router.refresh();
     },
-    onError: () => {
-      console.log("onError", { error });
-    },
   });
 
   async function handleRegenerate(fields: EditGenerationFormValues) {
-    const { model: nextModel, ...request } = fields;
+    const { model: nextModel, ...nextInput } = fields;
 
     await updateGenerationMutation.mutateAsync({
       id,
-      input: request,
+      input: nextInput,
       model: nextModel,
       status: GenerationStatus.PENDING,
     });
 
+    setRequest({ input: nextInput, model: nextModel });
     setStopped(false);
     submit({ id });
   }
 
-  console.log("GenerationStreamer", { object, isLoading, error });
+  // The route rebuilds the prompt from the stored input, so an untouched
+  // regenerate only has to re-submit.
+  function handleInstantRegenerate() {
+    setStopped(false);
+    submit({ id });
+  }
 
-  const variants = object?.variants as
-    | Array<Record<string, string | undefined> | undefined>
-    | undefined;
+  const typedVariants = useMemo(() => {
+    const variants = object?.variants as
+      | Array<Record<string, string | undefined> | undefined>
+      | undefined;
 
-  const filledVariants =
-    variants?.map((variant) => {
-      return Object.fromEntries(
-        template.fields.map((field) => [field.key, variant?.[field.key] ?? ""]),
-      );
-    }) ?? [];
+    const filledVariants =
+      variants?.map((variant) => {
+        return Object.fromEntries(
+          template.fields.map((field) => [
+            field.key,
+            variant?.[field.key] ?? "",
+          ]),
+        );
+      }) ?? [];
+
+    return z.array(template.variantSchema).safeParse(filledVariants);
+  }, [object?.variants, template.fields, template.variantSchema]);
 
   const isStartedRef = useRef(false);
 
@@ -89,15 +106,20 @@ export function GenerationStreamer({
     submit({ id });
   }, [id, submit]);
 
-  const typedVariants = z
-    .array(template.variantSchema)
-    .safeParse(filledVariants);
-
   if (!typedVariants.success || error) {
     return (
       <ErrorMessage
         title="Something went wrong"
-        action={<Button onClick={() => submit({ id })}>Try again</Button>}
+        action={
+          <GenerationErrorActions
+            templateId={templateId}
+            input={request.input}
+            model={request.model}
+            retryLabel="Try again"
+            onRetry={handleInstantRegenerate}
+            onEditRegenerate={handleRegenerate}
+          />
+        }
       />
     );
   }
@@ -112,8 +134,8 @@ export function GenerationStreamer({
         }
       >
         <GenerationForm
-          input={input}
-          model={model}
+          input={request.input}
+          model={request.model}
           disabled={!stopped}
           onStop={() => {
             stop();
@@ -129,6 +151,16 @@ export function GenerationStreamer({
     <GenerationVariants
       variants={typedVariants.data}
       fields={template.fields}
+      actions={
+        <GenerationActions
+          templateId={templateId}
+          input={request.input}
+          model={request.model}
+          disabled={isLoading}
+          onRegenerate={handleInstantRegenerate}
+          onEditRegenerate={handleRegenerate}
+        />
+      }
     />
   );
 }

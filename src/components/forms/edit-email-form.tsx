@@ -19,7 +19,7 @@ export function EditGenerationEmailForm({
   input: unknown;
   model: string;
   disabled: boolean;
-  onStop: () => void;
+  onStop?: () => void;
   onSubmit: (fields: EmailSubjectForm) => void | Promise<void>;
 }) {
   const parsed = emailSubjectRequestSchema.safeParse(input);

@@ -28,7 +28,7 @@ export function withCreateActions<P extends FormActionProps>(
 export function withEditActions<P extends FormActionProps>(
   Form: ComponentType<P>,
 ) {
-  return function FormWithEditActions(props: P & { onStop: () => void }) {
+  return function FormWithEditActions(props: P & { onStop?: () => void }) {
     return (
       <Form {...props}>
         {({ isSubmitting }) =>
@@ -37,7 +37,7 @@ export function withEditActions<P extends FormActionProps>(
               type="button"
               onClick={(event) => {
                 event.preventDefault();
-                props.onStop();
+                props.onStop?.();
               }}
             >
               <Spinner />

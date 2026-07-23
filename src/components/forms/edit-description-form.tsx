@@ -19,7 +19,7 @@ export function EditGenerationDescriptionForm({
   input: unknown;
   model: string;
   disabled: boolean;
-  onStop: () => void;
+  onStop?: () => void;
   onSubmit: (fields: ProductDescriptionForm) => void | Promise<void>;
 }) {
   const parsed = productDescriptionRequestSchema.safeParse(input);

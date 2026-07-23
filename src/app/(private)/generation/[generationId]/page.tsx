@@ -1,7 +1,7 @@
 import { GenerationError } from "@/components/generation/generation-error";
 import { GenerationPoller } from "@/components/generation/generation-poller";
 import { GenerationStreamer } from "@/components/generation/generation-streamer";
-import { GenerationVariants } from "@/components/generation/generation-variants";
+import { GenerationResult } from "@/components/generation/generation-result";
 import { PageContent } from "@/components/layout/page-content";
 import { Template, TemplateId } from "@/constants/templates";
 import { getGeneration } from "@/lib/db/generations";
@@ -56,23 +56,47 @@ export default async function Page(
           .safeParse(generation.output);
 
         if (!variants.success) {
-          return <GenerationError generationId={generationId} />;
+          return (
+            <GenerationError
+              generationId={generationId}
+              templateId={template.id}
+              input={generation.input}
+              model={generation.model}
+            />
+          );
         }
 
         return (
-          <GenerationVariants
+          <GenerationResult
+            generationId={generationId}
+            templateId={template.id}
             variants={variants.data}
-            fields={template.fields}
+            input={generation.input}
+            model={generation.model}
           />
         );
       }
 
       case GenerationStatus.ERROR: {
-        return <GenerationError generationId={generationId} />;
+        return (
+          <GenerationError
+            generationId={generationId}
+            templateId={template.id}
+            input={generation.input}
+            model={generation.model}
+          />
+        );
       }
 
       case GenerationStatus.STREAMING: {
-        return <GenerationPoller generationId={generationId} />;
+        return (
+          <GenerationPoller
+            generationId={generationId}
+            templateId={template.id}
+            input={generation.input}
+            model={generation.model}
+          />
+        );
       }
     }
   }

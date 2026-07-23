@@ -26,7 +26,7 @@ model Generation {
   output       Json?                                     // array of generated variants
   status       GenerationStatus   @default(PENDING)      // status of the generation
   model        String                                    // "gpt-4o-mini", "claude-sonnet-4-6"
-  favorite     Boolean            @default(false)
+  favorite     Int?
   createdAt    DateTime           @default(now())
 
   @@index([userId, createdAt])

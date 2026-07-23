@@ -1,33 +1,36 @@
 "use client";
 
-import { GenerationStatus } from "@prisma/client";
 import { Loader } from "../layout/loader";
 import { ErrorMessage } from "../layout/error-message";
 import { Button } from "../ui/button";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useUpdateGeneration } from "@/lib/query/use-generation-hooks";
+import { TemplateId } from "@/constants/templates";
+import { useRegenerateGeneration } from "@/lib/query/use-generation-hooks";
+import { GenerationErrorActions } from "./generation-error-actions";
 
 const REFRESH_INTERVAL_MS = 10000;
 const MAX_REFRESHES = 30;
 const REGENERATE_AFTER_MS = 20000;
 
-export function GenerationPoller({ generationId }: { generationId: string }) {
-  const updateGenerationMutation = useUpdateGeneration();
+export function GenerationPoller({
+  generationId,
+  templateId,
+  input,
+  model,
+}: {
+  generationId: string;
+  templateId: TemplateId;
+  input: unknown;
+  model: string;
+}) {
+  const { regenerate, editRegenerate, isPending } =
+    useRegenerateGeneration(generationId);
   const router = useRouter();
   const [refreshCount, setRefreshCount] = useState(0);
   const [canRegenerate, setCanRegenerate] = useState(false);
 
   const isExhausted = refreshCount >= MAX_REFRESHES;
-
-  async function handleRegenerate() {
-    await updateGenerationMutation.mutateAsync({
-      id: generationId,
-      status: GenerationStatus.PENDING,
-    });
-
-    router.refresh();
-  }
 
   useEffect(() => {
     if (isExhausted) return;
@@ -49,20 +52,21 @@ export function GenerationPoller({ generationId }: { generationId: string }) {
     return () => clearTimeout(timeoutId);
   }, []);
 
-  const regenerateButton = (
-    <Button
-      onClick={handleRegenerate}
-      disabled={updateGenerationMutation.isPending}
-    >
-      Regenerate
-    </Button>
-  );
-
   if (isExhausted) {
     return (
       <ErrorMessage
         title="Still generating. We've stopped checking for updates."
-        action={regenerateButton}
+        action={
+          <GenerationErrorActions
+            templateId={templateId}
+            input={input}
+            model={model}
+            retryLabel="Regenerate"
+            disabled={isPending}
+            onRetry={regenerate}
+            onEditRegenerate={editRegenerate}
+          />
+        }
       />
     );
   }
@@ -70,7 +74,13 @@ export function GenerationPoller({ generationId }: { generationId: string }) {
   return (
     <Loader
       title="Generating..."
-      action={canRegenerate ? regenerateButton : undefined}
+      action={
+        canRegenerate ? (
+          <Button onClick={regenerate} disabled={isPending}>
+            Regenerate
+          </Button>
+        ) : undefined
+      }
     />
   );
 }

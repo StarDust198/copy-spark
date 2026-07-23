@@ -25,7 +25,7 @@ type EditGenerationFormProps = {
   input: unknown;
   model: string;
   disabled: boolean;
-  onStop: () => void;
+  onStop?: () => void;
   onSubmit: (fields: EditGenerationFormValues) => void | Promise<void>;
 };
 
