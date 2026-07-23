@@ -3,6 +3,7 @@
 import { TemplateId } from "@/constants/templates";
 import { useRegenerateGeneration } from "@/lib/query/use-generation-hooks";
 import { ErrorMessage } from "../layout/error-message";
+import { useRegisterGenerationController } from "./generation-dialog-provider";
 import { GenerationErrorActions } from "./generation-error-actions";
 
 export function GenerationError({
@@ -19,6 +20,8 @@ export function GenerationError({
   const { regenerate, editRegenerate, isPending } =
     useRegenerateGeneration(generationId);
 
+  useRegisterGenerationController({ isStreaming: false, editRegenerate });
+
   return (
     <ErrorMessage
       title="There was an error during generation"
@@ -30,7 +33,6 @@ export function GenerationError({
           retryLabel="Try again"
           disabled={isPending}
           onRetry={regenerate}
-          onEditRegenerate={editRegenerate}
         />
       }
     />

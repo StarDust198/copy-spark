@@ -11,16 +11,20 @@ import {
   useUpdateGeneration,
 } from "@/lib/query/use-generation-hooks";
 import { GenerationStatus } from "@prisma/client";
-import {
-  EditGenerationForm,
-  type EditGenerationFormValues,
-} from "@/components/forms";
+import { type EditGenerationFormValues } from "@/components/forms";
 import { GenerationActions } from "./generation-actions";
 import { GenerationErrorActions } from "./generation-error-actions";
-import { GenerationFormWrapper } from "./generation-form-wrapper";
+import {
+  useGenerationDialogActions,
+  useGenerationDialogState,
+  useRegisterGenerationController,
+} from "./generation-dialog-provider";
 import { GenerationVariants } from "./generation-variants";
 import { useRouter } from "next/navigation";
 import { ErrorMessage } from "../layout/error-message";
+import { Loader } from "../layout/loader";
+import { StoppedMessage } from "../layout/stopped-message";
+import { Button } from "../ui/button";
 
 export function GenerationStreamer({
   templateId,
@@ -36,6 +40,10 @@ export function GenerationStreamer({
   const queryClient = useQueryClient();
   const router = useRouter();
   const updateGenerationMutation = useUpdateGeneration();
+
+  const { openDialog, ensureDialogOpen, closeDialog } =
+    useGenerationDialogActions();
+  const { target: dialogTarget } = useGenerationDialogState();
 
   // A stream always starts from a cleared pick — the API route resets the column
   // when it flips the row to STREAMING.
@@ -68,6 +76,10 @@ export function GenerationStreamer({
     },
   });
 
+  // Closing on the first token rather than on submit keeps the dialog up while the
+  // loader underneath still has nothing to show.
+  const hasClosedDialogRef = useRef(false);
+
   async function handleRegenerate(fields: EditGenerationFormValues) {
     const { model: nextModel, ...nextInput } = fields;
 
@@ -82,6 +94,7 @@ export function GenerationStreamer({
     setRequest({ input: nextInput, model: nextModel });
     setStopped(false);
     resetFavorite();
+    hasClosedDialogRef.current = false;
     submit({ id });
   }
 
@@ -90,7 +103,18 @@ export function GenerationStreamer({
   function handleInstantRegenerate() {
     setStopped(false);
     resetFavorite();
+    hasClosedDialogRef.current = false;
     submit({ id });
+  }
+
+  const editTarget = { templateId, input: request.input, model: request.model };
+
+  function handleStop() {
+    stop();
+    setStopped(true);
+    // Stopping is a request to edit, so the form comes to the user — whether they
+    // stopped from the dialog or from the loader.
+    ensureDialogOpen(editTarget);
   }
 
   const typedVariants = useMemo(() => {
@@ -111,6 +135,19 @@ export function GenerationStreamer({
     return z.array(template.variantSchema).safeParse(filledVariants);
   }, [object?.variants, template.fields, template.variantSchema]);
 
+  const hasError = !typedVariants.success || !!error;
+
+  // `isLoading` is still false between mount and the submit effect below. Treating
+  // that window as running keeps the loader up and stops the dialog's button from
+  // flashing "Generate" before the request is even in flight.
+  const isRunning = isLoading || (!stopped && !object && !hasError);
+
+  useRegisterGenerationController({
+    isStreaming: isRunning,
+    stop: handleStop,
+    editRegenerate: handleRegenerate,
+  });
+
   const isStartedRef = useRef(false);
 
   useEffect(() => {
@@ -119,7 +156,14 @@ export function GenerationStreamer({
     submit({ id });
   }, [id, submit]);
 
-  if (!typedVariants.success || error) {
+  useEffect(() => {
+    if (!object || hasClosedDialogRef.current) return;
+
+    hasClosedDialogRef.current = true;
+    closeDialog();
+  }, [object, closeDialog]);
+
+  if (hasError) {
     return (
       <ErrorMessage
         title="Something went wrong"
@@ -130,33 +174,39 @@ export function GenerationStreamer({
             model={request.model}
             retryLabel="Try again"
             onRetry={handleInstantRegenerate}
-            onEditRegenerate={handleRegenerate}
           />
         }
       />
     );
   }
 
-  if (stopped || (isLoading && !object)) {
-    const GenerationForm = EditGenerationForm[templateId];
-
+  if (stopped) {
     return (
-      <GenerationFormWrapper
-        title={
-          <p>{stopped ? "Edit and regenerate" : "Creating new generation"}</p>
+      <StoppedMessage
+        title="Generation stopped"
+        action={
+          <Button onClick={() => openDialog(editTarget)}>
+            Edit and regenerate
+          </Button>
         }
-      >
-        <GenerationForm
-          input={request.input}
-          model={request.model}
-          disabled={!stopped}
-          onStop={() => {
-            stop();
-            setStopped(true);
-          }}
-          onSubmit={handleRegenerate}
-        />
-      </GenerationFormWrapper>
+      />
+    );
+  }
+
+  if (isRunning && !object) {
+    return (
+      <Loader
+        title="Generating..."
+        // The dialog owns Stop while it is open — the copy underneath would sit
+        // behind the backdrop anyway.
+        action={
+          dialogTarget ? undefined : (
+            <Button variant="outline" onClick={handleStop}>
+              Stop
+            </Button>
+          )
+        }
+      />
     );
   }
 
@@ -175,7 +225,6 @@ export function GenerationStreamer({
           model={request.model}
           disabled={isLoading}
           onRegenerate={handleInstantRegenerate}
-          onEditRegenerate={handleRegenerate}
         />
       }
     />

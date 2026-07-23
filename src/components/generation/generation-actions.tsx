@@ -1,13 +1,11 @@
 "use client";
 
-import { useState } from "react";
 import { RefreshCw, SlidersHorizontal } from "lucide-react";
 
-import { type EditGenerationFormValues } from "@/components/forms";
 import { TemplateId } from "@/constants/templates";
 import { Button } from "../ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
-import { EditGenerationDialog } from "./edit-generation-dialog";
+import { useGenerationDialogActions } from "./generation-dialog-provider";
 
 type GenerationActionsProps = {
   templateId: TemplateId;
@@ -15,7 +13,6 @@ type GenerationActionsProps = {
   model: string;
   disabled?: boolean;
   onRegenerate: () => void | Promise<void>;
-  onEditRegenerate: (fields: EditGenerationFormValues) => void | Promise<void>;
 };
 
 export function GenerationActions({
@@ -24,9 +21,10 @@ export function GenerationActions({
   model,
   disabled,
   onRegenerate,
-  onEditRegenerate,
 }: GenerationActionsProps) {
-  const [open, setOpen] = useState(false);
+  // The dialog itself lives in the private layout so it can outlive the refresh that
+  // an edit triggers; the submit handler comes from whichever view is registered.
+  const { openDialog } = useGenerationDialogActions();
 
   return (
     <div className="flex items-center gap-2">
@@ -60,7 +58,7 @@ export function GenerationActions({
               size="icon"
               aria-label="Edit inputs"
               disabled={disabled}
-              onClick={() => setOpen(true)}
+              onClick={() => openDialog({ templateId, input, model })}
             />
           }
         >
@@ -71,15 +69,6 @@ export function GenerationActions({
           <p>Edit inputs</p>
         </TooltipContent>
       </Tooltip>
-
-      <EditGenerationDialog
-        templateId={templateId}
-        input={input}
-        model={model}
-        open={open}
-        onOpenChange={setOpen}
-        onSubmit={onEditRegenerate}
-      />
     </div>
   );
 }

@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  EditGenerationForm,
-  type EditGenerationFormValues,
-} from "@/components/forms";
-import { TemplateId } from "@/constants/templates";
+import { EditGenerationForm } from "@/components/forms";
 import {
   Dialog,
   DialogContent,
@@ -12,37 +8,30 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../ui/dialog";
+import {
+  useGenerationDialogActions,
+  useGenerationDialogState,
+} from "./generation-dialog-provider";
 
-type EditGenerationDialogProps = {
-  templateId: TemplateId;
-  input: unknown;
-  model: string;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSubmit: (fields: EditGenerationFormValues) => void | Promise<void>;
-};
+// Mounted once by the private layout, above the route. Callers open it through
+// `openDialog` instead of rendering their own instance — an open dialog is what tells
+// the generation page the user arrived here through a form, so there can only be one.
+export function EditGenerationDialog() {
+  const { target, isStreaming, hasController } = useGenerationDialogState();
+  const { closeDialog, stop, editRegenerate } = useGenerationDialogActions();
 
-// Controlled rather than trigger-based: callers render their own trigger, which
-// keeps the tooltip-wrapped icon buttons in `GenerationActions` from having to
-// nest Base UI `render` props.
-export function EditGenerationDialog({
-  templateId,
-  input,
-  model,
-  open,
-  onOpenChange,
-  onSubmit,
-}: EditGenerationDialogProps) {
-  const GenerationForm = EditGenerationForm[templateId];
+  // Unmounting between opens is what lets the form pick up fresh default values.
+  if (!target) return null;
 
-  async function handleSubmit(fields: EditGenerationFormValues) {
-    await onSubmit(fields);
-
-    onOpenChange(false);
-  }
+  const GenerationForm = EditGenerationForm[target.templateId];
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open
+      onOpenChange={(open) => {
+        if (!open) closeDialog();
+      }}
+    >
       <DialogContent className="max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit and regenerate</DialogTitle>
@@ -52,11 +41,18 @@ export function EditGenerationDialog({
           </DialogDescription>
         </DialogHeader>
 
+        {/* Deliberately stays open past submit — `GenerationStreamer` closes it once
+            the first token lands, so the loader underneath is never revealed empty. */}
         <GenerationForm
-          input={input}
-          model={model}
-          disabled={false}
-          onSubmit={handleSubmit}
+          input={target.input}
+          model={target.model}
+          // Swaps Generate for Stop while a run is in flight, and through the gap
+          // between an edit submit and the remounted streamer registering.
+          disabled={isStreaming || !hasController}
+          // No handler means nothing live to abort, which renders Stop disabled
+          // rather than letting the click do nothing.
+          onStop={hasController ? stop : undefined}
+          onSubmit={editRegenerate}
         />
       </DialogContent>
     </Dialog>

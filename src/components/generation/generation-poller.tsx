@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { TemplateId } from "@/constants/templates";
 import { useRegenerateGeneration } from "@/lib/query/use-generation-hooks";
+import { useRegisterGenerationController } from "./generation-dialog-provider";
 import { GenerationErrorActions } from "./generation-error-actions";
 
 const REFRESH_INTERVAL_MS = 10000;
@@ -27,6 +28,8 @@ export function GenerationPoller({
   const { regenerate, editRegenerate, isPending } =
     useRegenerateGeneration(generationId);
   const router = useRouter();
+
+  useRegisterGenerationController({ isStreaming: false, editRegenerate });
   const [refreshCount, setRefreshCount] = useState(0);
   const [canRegenerate, setCanRegenerate] = useState(false);
 
@@ -64,7 +67,6 @@ export function GenerationPoller({
             retryLabel="Regenerate"
             disabled={isPending}
             onRetry={regenerate}
-            onEditRegenerate={editRegenerate}
           />
         }
       />

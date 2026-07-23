@@ -1,11 +1,8 @@
 "use client";
 
-import { useState } from "react";
-
-import { type EditGenerationFormValues } from "@/components/forms";
 import { TemplateId } from "@/constants/templates";
 import { Button } from "../ui/button";
-import { EditGenerationDialog } from "./edit-generation-dialog";
+import { useGenerationDialogActions } from "./generation-dialog-provider";
 
 type GenerationErrorActionsProps = {
   templateId: TemplateId;
@@ -14,7 +11,6 @@ type GenerationErrorActionsProps = {
   retryLabel: string;
   disabled?: boolean;
   onRetry: () => void | Promise<void>;
-  onEditRegenerate: (fields: EditGenerationFormValues) => void | Promise<void>;
 };
 
 export function GenerationErrorActions({
@@ -24,9 +20,8 @@ export function GenerationErrorActions({
   retryLabel,
   disabled,
   onRetry,
-  onEditRegenerate,
 }: GenerationErrorActionsProps) {
-  const [open, setOpen] = useState(false);
+  const { openDialog } = useGenerationDialogActions();
 
   return (
     <div className="flex items-center gap-2">
@@ -38,19 +33,10 @@ export function GenerationErrorActions({
         type="button"
         variant="outline"
         disabled={disabled}
-        onClick={() => setOpen(true)}
+        onClick={() => openDialog({ templateId, input, model })}
       >
         Edit inputs
       </Button>
-
-      <EditGenerationDialog
-        templateId={templateId}
-        input={input}
-        model={model}
-        open={open}
-        onOpenChange={setOpen}
-        onSubmit={onEditRegenerate}
-      />
     </div>
   );
 }

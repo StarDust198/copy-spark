@@ -33,8 +33,12 @@ export function withEditActions<P extends FormActionProps>(
       <Form {...props}>
         {({ isSubmitting }) =>
           props.disabled ? (
+            // No `onStop` means there is nothing live to abort — during a route
+            // transition, say — so the button reads as unavailable instead of
+            // silently doing nothing.
             <Button
               type="button"
+              disabled={!props.onStop}
               onClick={(event) => {
                 event.preventDefault();
                 props.onStop?.();

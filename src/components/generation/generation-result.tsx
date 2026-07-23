@@ -10,6 +10,7 @@ import {
   useUpdateGeneration,
 } from "@/lib/query/use-generation-hooks";
 import { GenerationActions } from "./generation-actions";
+import { useRegisterGenerationController } from "./generation-dialog-provider";
 import { GenerationVariants } from "./generation-variants";
 
 type GenerationResultProps = {
@@ -64,6 +65,13 @@ export function GenerationResult({
     router.refresh();
   }
 
+  // The dialog outlives the refresh above, so it has to reach this handler through
+  // the provider rather than holding the one captured when it opened.
+  useRegisterGenerationController({
+    isStreaming: false,
+    editRegenerate: handleEditRegenerate,
+  });
+
   return (
     <GenerationVariants
       variants={variants}
@@ -77,7 +85,6 @@ export function GenerationResult({
           model={model}
           disabled={updateGenerationMutation.isPending}
           onRegenerate={handleRegenerate}
-          onEditRegenerate={handleEditRegenerate}
         />
       }
     />
