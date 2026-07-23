@@ -1,6 +1,5 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
 import { Generation, GenerationStatus } from "@prisma/client";
 import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
@@ -12,8 +11,8 @@ import {
   TemplateRequest,
   TemplateVariant,
 } from "@/constants/templates";
-
-const model = "anthropic/claude-haiku-4.5";
+import { modelIdSchema } from "@/schemas/generation";
+import * as db from "@/lib/db/generations";
 
 async function getUserId() {
   const { userId, isAuthenticated } = await auth();
@@ -25,100 +24,66 @@ async function getUserId() {
   return userId;
 }
 
-export async function createDBGeneration({
-  userId,
-  request,
-  variants,
-  title,
-  templateId,
-}: {
-  userId: string;
-  title: string;
-  request: TemplateRequest;
-  variants: TemplateVariant[];
-  templateId: TemplateId;
-}) {
-  return await prisma.generation.create({
-    data: {
-      userId,
-      model,
-      input: JSON.stringify(request),
-      output: JSON.stringify(variants),
-      title,
-      templateId,
-    },
-  });
-}
-
 export async function createEmailSubjectGeneration({
   id,
-  request,
+  input,
   model,
 }: {
   id?: string;
-  request: EmailSubjectRequest;
+  input: EmailSubjectRequest;
   model: string;
 }) {
   const userId = await getUserId();
 
-  return await prisma.generation.create({
-    data: {
-      id,
-      userId,
-      model,
-      input: JSON.stringify(request),
-      title: "Email Subject Generation",
-      templateId: TemplateId.emailSubject,
-      status: GenerationStatus.PENDING,
-    },
+  return await db.createGeneration({
+    id,
+    userId,
+    input,
+    model: modelIdSchema.parse(model),
+    title: "Email Subject Generation",
+    templateId: TemplateId.emailSubject,
   });
 }
 
 export async function createFacebookAdGeneration({
   id,
-  request,
+  input,
   model,
 }: {
   id?: string;
-  request: FacebookAdRequest;
+  input: FacebookAdRequest;
   model: string;
 }) {
   const userId = await getUserId();
 
-  return await prisma.generation.create({
-    data: {
-      id,
-      userId,
-      model,
-      input: JSON.stringify(request),
-      title: "Facebook Ad Generation",
-      templateId: TemplateId.facebookAd,
-      status: GenerationStatus.PENDING,
-    },
+  return await db.createGeneration({
+    id,
+    userId,
+    input,
+    model: modelIdSchema.parse(model),
+    title: "Facebook Ad Generation",
+    templateId: TemplateId.facebookAd,
   });
 }
 
 export async function createProductDescriptionGeneration({
   id,
-  request,
+  input,
   model,
 }: {
   id?: string;
-  request: ProductDescriptionRequest;
+  input: ProductDescriptionRequest;
   model: string;
 }) {
   const userId = await getUserId();
 
-  return await prisma.generation.create({
-    data: {
-      id,
-      userId,
-      model,
-      input: JSON.stringify(request),
-      title: "Product Description Generation",
-      templateId: TemplateId.productDescription,
-      status: GenerationStatus.PENDING,
-    },
+  return await db.createGeneration({
+    id,
+    userId,
+    input,
+    model: modelIdSchema.parse(model),
+    title: "Product Description Generation",
+    templateId: TemplateId.productDescription,
   });
 }
 
@@ -127,65 +92,33 @@ export async function updateGeneration({
   status,
   title,
   output,
+  input,
+  model,
 }: {
   id: string;
   status?: GenerationStatus;
   output?: TemplateVariant[];
   title?: string;
+  input?: TemplateRequest;
+  model?: string;
 }) {
   const userId = await getUserId();
 
-  const updatedGeneration = await prisma.generation.update({
-    where: {
-      id,
-      userId,
-    },
-    data: {
-      title,
-      status,
-      output: JSON.stringify(output),
-    },
-  });
-
-  return updatedGeneration;
-}
-
-export async function getGeneration({
-  id,
-}: {
-  id: string;
-}): Promise<Generation | null> {
-  const userId = await getUserId();
-
-  const generation = await prisma.generation.findFirst({
-    where: {
-      id,
-      userId,
-    },
-  });
-
-  if (!generation) return null;
-
-  const output =
-    typeof generation.output === "string" ? JSON.parse(generation.output) : [];
-
-  return {
-    ...generation,
+  return await db.updateGeneration({
+    id,
+    userId,
+    status,
+    title,
     output,
-  };
+    input,
+    model: modelIdSchema.optional().parse(model),
+  });
 }
 
 export async function getGenerations(): Promise<Generation[]> {
   const userId = await getUserId();
 
-  return await prisma.generation.findMany({
-    where: {
-      userId,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
+  return await db.getGenerations({ userId });
 }
 
 export async function deleteGeneration({
@@ -195,10 +128,5 @@ export async function deleteGeneration({
 }): Promise<Generation> {
   const userId = await getUserId();
 
-  return await prisma.generation.delete({
-    where: {
-      id,
-      userId,
-    },
-  });
+  return await db.deleteGeneration({ id, userId });
 }

@@ -1,25 +1,18 @@
 import { streamText, Output, createTextStreamResponse, toTextStream } from "ai";
+import { after } from "next/server";
 import { z } from "zod";
 import { auth } from "@clerk/nextjs/server";
 import { buildPrompt, SYSTEM_PROMPT } from "@/lib/prompts";
-import { after } from "next/server";
-import { getGeneration, updateGeneration } from "@/lib/actions/generations";
+import { getGeneration, updateGeneration } from "@/lib/db/generations";
 import { GenerationStatus } from "@prisma/client";
 import { Template, TemplateId } from "@/constants/templates";
 import { getOutputSchema } from "@/schemas/generation";
-
-function generationError(id: string) {
-  updateGeneration({
-    id,
-    status: GenerationStatus.ERROR,
-  });
-}
 
 export async function POST(
   req: Request,
   ctx: RouteContext<"/api/generate/[templateId]">,
 ) {
-  const { isAuthenticated } = await auth();
+  const { userId, isAuthenticated } = await auth();
 
   if (!isAuthenticated) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
@@ -49,24 +42,22 @@ export async function POST(
 
   const { id } = parsedBody.data;
 
-  const generation = await getGeneration({ id });
+  const generation = await getGeneration({ id, userId });
 
   if (!generation) {
     return Response.json({ error: "Generation not found" }, { status: 404 });
   }
 
-  const generationInput = generation.input;
-
-  if (typeof generationInput !== "string") {
-    return Response.json({ error: "Server error" }, { status: 500 });
-  }
-
-  const builtPrompt = buildPrompt[parsedTemplateId.data](
-    JSON.parse(generationInput),
-  );
+  // buildPrompt takes `unknown` and safeParses, so a malformed stored input is
+  // reported below rather than thrown here
+  const builtPrompt = buildPrompt[parsedTemplateId.data](generation.input);
 
   if (!builtPrompt.success) {
-    generationError(id);
+    updateGeneration({
+      id,
+      userId,
+      status: GenerationStatus.ERROR,
+    });
 
     return Response.json(
       {
@@ -77,41 +68,47 @@ export async function POST(
     );
   }
 
-  await updateGeneration({ id, status: GenerationStatus.STREAMING });
+  await updateGeneration({ id, userId, status: GenerationStatus.STREAMING });
 
   const result = streamText({
     model: generation.model,
     system: SYSTEM_PROMPT,
     prompt: builtPrompt.prompt,
-    // built from `variantSchema` rather than reusing `template.outputSchema`:
-    // `template` is a union, and `Output.object` would infer its generic from
-    // the first member only. `getOutputSchema` collapses the union first.
     output: Output.object({
       schema: getOutputSchema(template.variantSchema),
     }),
-    onError: () => generationError(id),
+    onError: (error) => {
+      console.error("onError", error);
+    },
+    onAbort: ({ steps }) => {
+      console.log("onAbort", { steps });
+    },
+    onEnd: ({ content, finishReason }) => {
+      console.log("onEnd", { finishReason, content });
+    },
+    abortSignal: req.signal,
   });
 
-  // consume the stream to ensure it runs to completion & triggers onEnd
-  // even when the client response is aborted:
-  result.consumeStream(); // no await
-
-  // on Vercel, once the response finishes streaming, the function can be
-  // frozen. that wrapper helps to avoid it
-  // TODO: if server doesn't get to this for any reason - the generation
-  // TODO: will stuck at STREAMING state
+  // deliberately no result.consumeStream()
   after(async () => {
     try {
       const { title, variants } = await result.output;
 
       await updateGeneration({
         id,
-        status: GenerationStatus.COMPLETED,
+        userId,
+        title,
         output: variants,
-        title: title,
+        status: GenerationStatus.COMPLETED,
       });
     } catch {
-      await updateGeneration({ id, status: GenerationStatus.ERROR });
+      await updateGeneration({
+        userId,
+        id,
+        status: req.signal.aborted
+          ? GenerationStatus.PENDING
+          : GenerationStatus.ERROR,
+      });
     }
   });
 

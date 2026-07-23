@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TemplateForm } from "@/components/forms";
+import { GenerationFormWrapper } from "@/components/generation/generation-form-wrapper";
+import { CreateGenerationForm } from "@/components/forms";
 import { Template, TemplateId } from "@/constants/templates";
 import { CircleChevronLeft } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
@@ -49,13 +49,14 @@ export default async function Page({ params }: PageProps<"/new/[templateId]">) {
   if (!generationTarget) notFound();
 
   const { title } = generationTarget;
-  const Form = TemplateForm[parsedTemplateId.data];
+  const CreateTemplateGenerationForm =
+    CreateGenerationForm[parsedTemplateId.data];
 
   return (
     <PageContent>
-      <Card className="w-full max-w-96">
-        <CardHeader className="gap-2">
-          <CardTitle className="flex items-center gap-1">
+      <GenerationFormWrapper
+        title={
+          <>
             <Tooltip>
               <TooltipTrigger>
                 <Link
@@ -80,13 +81,11 @@ export default async function Page({ params }: PageProps<"/new/[templateId]">) {
                 {title}
               </span>
             </p>
-          </CardTitle>
-        </CardHeader>
-
-        <CardContent>
-          <Form />
-        </CardContent>
-      </Card>
+          </>
+        }
+      >
+        <CreateTemplateGenerationForm />
+      </GenerationFormWrapper>
     </PageContent>
   );
 }

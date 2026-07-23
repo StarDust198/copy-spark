@@ -2,31 +2,73 @@
 
 import { Template, TemplateId } from "@/constants/templates";
 import { useObject } from "@ai-sdk/react";
-import { VariantCard } from "./variant-card";
 import z from "zod";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { generationOptions } from "@/lib/query/generations-options";
-import { Loader } from "../layout/loader";
+import { useUpdateGeneration } from "@/lib/query/use-generation-hooks";
+import { GenerationStatus } from "@prisma/client";
+import {
+  EditGenerationForm,
+  type EditGenerationFormValues,
+} from "@/components/forms";
+import { GenerationFormWrapper } from "./generation-form-wrapper";
+import { GenerationVariants } from "./generation-variants";
+import { useRouter } from "next/navigation";
 import { ErrorMessage } from "../layout/error-message";
-import { Button } from "../ui/button";
+import { Button } from "@base-ui/react";
 
 export function GenerationStreamer({
   templateId,
   id,
+  input,
+  model,
 }: {
   templateId: TemplateId;
   id: string;
+  input: unknown;
+  model: string;
 }) {
   const queryClient = useQueryClient();
+  const router = useRouter();
+  const updateGenerationMutation = useUpdateGeneration();
+
+  const [stopped, setStopped] = useState(false);
 
   const template = Template[templateId];
 
-  const { object, submit, isLoading, error } = useObject({
+  const { object, submit, isLoading, error, stop } = useObject({
     api: template.streamApiUrl,
     schema: template.outputSchema,
-    onFinish: () => queryClient.invalidateQueries(generationOptions()),
+    onFinish: ({ error }) => {
+      queryClient.invalidateQueries(generationOptions());
+
+      console.log("onFinish", { error });
+
+      if (!error) return;
+
+      router.refresh();
+    },
+    onError: () => {
+      console.log("onError", { error });
+    },
   });
+
+  async function handleRegenerate(fields: EditGenerationFormValues) {
+    const { model: nextModel, ...request } = fields;
+
+    await updateGenerationMutation.mutateAsync({
+      id,
+      input: request,
+      model: nextModel,
+      status: GenerationStatus.PENDING,
+    });
+
+    setStopped(false);
+    submit({ id });
+  }
+
+  console.log("GenerationStreamer", { object, isLoading, error });
 
   const variants = object?.variants as
     | Array<Record<string, string | undefined> | undefined>
@@ -60,18 +102,33 @@ export function GenerationStreamer({
     );
   }
 
-  if (isLoading && !object) {
-    return <Loader title="Generation starting..." />;
+  if (stopped || (isLoading && !object)) {
+    const GenerationForm = EditGenerationForm[templateId];
+
+    return (
+      <GenerationFormWrapper
+        title={
+          <p>{stopped ? "Edit and regenerate" : "Creating new generation"}</p>
+        }
+      >
+        <GenerationForm
+          input={input}
+          model={model}
+          disabled={!stopped}
+          onStop={() => {
+            stop();
+            setStopped(true);
+          }}
+          onSubmit={handleRegenerate}
+        />
+      </GenerationFormWrapper>
+    );
   }
 
-  return typedVariants.data.map((variant, index) => {
-    return (
-      <VariantCard
-        key={index}
-        index={index}
-        variant={variant}
-        fields={template.fields}
-      />
-    );
-  });
+  return (
+    <GenerationVariants
+      variants={typedVariants.data}
+      fields={template.fields}
+    />
+  );
 }

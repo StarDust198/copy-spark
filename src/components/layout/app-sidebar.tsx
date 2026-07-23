@@ -69,7 +69,7 @@ export function AppSidebar() {
   const params = useParams();
   const router = useRouter();
   const { state } = useSidebar();
-  const { data: generations } = useQuery(generationOptions());
+  const { data: generations, isLoading } = useQuery(generationOptions());
 
   const deleteChatMutation = useDeleteGeneration();
 
@@ -155,65 +155,69 @@ export function AppSidebar() {
             <SidebarGroupLabel>Generations</SidebarGroupLabel>
 
             <SidebarGroupContent className="flex flex-col grow min-h-0 gap-0.5 px-1 overflow-hidden hover:overflow-y-auto">
-              <SidebarMenu>
-                {generations?.map((generation) => {
-                  const chatUrl = `/generation/${generation.id}`;
-                  const isActiveChat = pathname === chatUrl;
+              {isLoading ? (
+                <div className="text-muted-foreground text-sm">Loading...</div>
+              ) : (
+                <SidebarMenu>
+                  {generations?.map((generation) => {
+                    const chatUrl = `/generation/${generation.id}`;
+                    const isActiveChat = pathname === chatUrl;
 
-                  return (
-                    <SidebarMenuItem
-                      key={generation.id}
-                      className="flex items-center gap-2 justify-between"
-                    >
-                      {/* TODO: Fix double tooltip on collapsed sidebar state  */}
-                      <SidebarMenuButton
-                        tooltip={generation.title}
-                        isActive={isActiveChat}
-                        className="pr-2! group-hover/menu-item:pr-8! group-focus-within/menu-item:pr-8! group-has-aria-expanded/menu-item:pr-8!"
-                        render={
-                          <Link href={chatUrl}>
-                            <TruncatedText>{generation.title}</TruncatedText>
-                          </Link>
-                        }
-                      />
-
-                      <DropdownMenu>
-                        <DropdownMenuTrigger
+                    return (
+                      <SidebarMenuItem
+                        key={generation.id}
+                        className="flex items-center gap-2 justify-between"
+                      >
+                        {/* TODO: Fix double tooltip on collapsed sidebar state  */}
+                        <SidebarMenuButton
+                          tooltip={generation.title}
+                          isActive={isActiveChat}
+                          className="pr-2! group-hover/menu-item:pr-8! group-focus-within/menu-item:pr-8! group-has-aria-expanded/menu-item:pr-8!"
                           render={
-                            <SidebarMenuAction showOnHover>
-                              <EllipsisVertical />
-
-                              <span className="sr-only">
-                                Generation actions
-                              </span>
-                            </SidebarMenuAction>
+                            <Link href={chatUrl}>
+                              <TruncatedText>{generation.title}</TruncatedText>
+                            </Link>
                           }
                         />
 
-                        <DropdownMenuContent className="min-w-24">
-                          <DropdownMenuItem
-                            onClick={() => setRenameTarget(generation)}
-                          >
-                            <Pencil />
-                            Rename
-                          </DropdownMenuItem>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger
+                            render={
+                              <SidebarMenuAction showOnHover>
+                                <EllipsisVertical />
 
-                          <DropdownMenuItem
-                            disabled={deleteChatMutation.isPending}
-                            onClick={() =>
-                              handleDeleteGeneration(generation.id)
+                                <span className="sr-only">
+                                  Generation actions
+                                </span>
+                              </SidebarMenuAction>
                             }
-                            variant="destructive"
-                          >
-                            <Trash2 />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </SidebarMenuItem>
-                  );
-                })}
-              </SidebarMenu>
+                          />
+
+                          <DropdownMenuContent className="min-w-24">
+                            <DropdownMenuItem
+                              onClick={() => setRenameTarget(generation)}
+                            >
+                              <Pencil />
+                              Rename
+                            </DropdownMenuItem>
+
+                            <DropdownMenuItem
+                              disabled={deleteChatMutation.isPending}
+                              onClick={() =>
+                                handleDeleteGeneration(generation.id)
+                              }
+                              variant="destructive"
+                            >
+                              <Trash2 />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </SidebarMenuItem>
+                    );
+                  })}
+                </SidebarMenu>
+              )}
             </SidebarGroupContent>
           </SidebarGroup>
         </Show>

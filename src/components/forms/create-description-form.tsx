@@ -4,8 +4,10 @@ import { generateId } from "ai";
 import { useRouter } from "next/navigation";
 import { ProductDescriptionForm } from "@/schemas/description-schema";
 import { useCreateProductDescriptionGeneration } from "@/lib/query/use-generation-hooks";
-import { Button } from "../ui/button";
 import { DescriptionForm } from "./description-form";
+import { withCreateActions } from "./with-form-actions";
+
+const DescriptionFormWithActions = withCreateActions(DescriptionForm);
 
 export function CreateDescriptionForm() {
   const createProductDescriptionGenerationMutation =
@@ -15,25 +17,17 @@ export function CreateDescriptionForm() {
   async function onSubmit(fields: ProductDescriptionForm) {
     const id = generateId();
 
-    const { model, ...request } = fields;
+    const { model, ...input } = fields;
 
     const generation =
       await createProductDescriptionGenerationMutation.mutateAsync({
         id,
-        request,
+        input,
         model,
       });
 
     router.push(`/generation/${generation.id}`);
   }
 
-  return (
-    <DescriptionForm onSubmit={onSubmit}>
-      {({ isSubmitting }) => (
-        <Button type="submit" disabled={isSubmitting}>
-          Generate
-        </Button>
-      )}
-    </DescriptionForm>
-  );
+  return <DescriptionFormWithActions onSubmit={onSubmit} />;
 }
