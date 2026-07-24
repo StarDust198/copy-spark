@@ -6,13 +6,18 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/cn";
-import { ComponentProps, ReactNode, useEffect, useRef, useState } from "react";
+import { ComponentProps, useEffect, useRef, useState } from "react";
+
+type TruncatedTextProps = ComponentProps<"div"> & {
+  tooltipDisabled?: boolean;
+};
 
 export function TruncatedText({
   children,
   className,
+  tooltipDisabled,
   ...props
-}: ComponentProps<"div"> & { children: ReactNode }) {
+}: TruncatedTextProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [truncated, setTruncated] = useState(false);
 
@@ -32,7 +37,7 @@ export function TruncatedText({
   return (
     <Tooltip>
       <TooltipTrigger
-        disabled={!truncated}
+        disabled={!truncated || tooltipDisabled}
         render={
           <div ref={ref} className={cn("truncate", className)} {...props}>
             {children}

@@ -1,5 +1,5 @@
 import { TemplateId } from "@/constants/templates";
-import { ComponentType } from "react";
+import { ComponentType, ReactNode } from "react";
 import { ProductDescriptionForm } from "@/schemas/description-schema";
 import { EmailSubjectForm } from "@/schemas/email-schema";
 import { FacebookAdForm } from "@/schemas/facebook-schema";
@@ -26,6 +26,8 @@ type EditGenerationFormProps = {
   model: string;
   disabled: boolean;
   onStop?: () => void;
+  // Rendered after the fields, just above the submit button.
+  error?: ReactNode;
   onSubmit: (fields: EditGenerationFormValues) => void | Promise<void>;
 };
 

@@ -154,7 +154,7 @@ export function AppSidebar() {
           <SidebarGroup className="min-h-0">
             <SidebarGroupLabel>Generations</SidebarGroupLabel>
 
-            <SidebarGroupContent className="flex flex-col grow min-h-0 gap-0.5 px-1 overflow-hidden hover:overflow-y-auto">
+            <SidebarGroupContent className="flex flex-col grow min-h-0 gap-0.5 px-1 overflow-hidden group-data-[state=expanded]:hover:overflow-y-auto">
               {isLoading ? (
                 <div className="text-muted-foreground text-sm">Loading...</div>
               ) : (
@@ -175,7 +175,9 @@ export function AppSidebar() {
                           className="pr-2! group-hover/menu-item:pr-8! group-focus-within/menu-item:pr-8! group-has-aria-expanded/menu-item:pr-8!"
                           render={
                             <Link href={chatUrl}>
-                              <TruncatedText>{generation.title}</TruncatedText>
+                              <TruncatedText tooltipDisabled={!isExpanded}>
+                                {generation.title}
+                              </TruncatedText>
                             </Link>
                           }
                         />

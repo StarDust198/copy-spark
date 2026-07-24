@@ -28,31 +28,37 @@ export function withCreateActions<P extends FormActionProps>(
 export function withEditActions<P extends FormActionProps>(
   Form: ComponentType<P>,
 ) {
-  return function FormWithEditActions(props: P & { onStop?: () => void }) {
+  return function FormWithEditActions(
+    props: P & { onStop?: () => void; error?: ReactNode },
+  ) {
     return (
       <Form {...props}>
-        {({ isSubmitting }) =>
-          props.disabled ? (
-            // No `onStop` means there is nothing live to abort — during a route
-            // transition, say — so the button reads as unavailable instead of
-            // silently doing nothing.
-            <Button
-              type="button"
-              disabled={!props.onStop}
-              onClick={(event) => {
-                event.preventDefault();
-                props.onStop?.();
-              }}
-            >
-              <Spinner />
-              Stop
-            </Button>
-          ) : (
-            <Button type="submit" disabled={isSubmitting}>
-              Generate
-            </Button>
-          )
-        }
+        {({ isSubmitting }) => (
+          <>
+            {props.error}
+
+            {props.disabled ? (
+              // No `onStop` means there is nothing live to abort — during a route
+              // transition, say — so the button reads as unavailable instead of
+              // silently doing nothing.
+              <Button
+                type="button"
+                disabled={!props.onStop}
+                onClick={(event) => {
+                  event.preventDefault();
+                  props.onStop?.();
+                }}
+              >
+                <Spinner />
+                Stop
+              </Button>
+            ) : (
+              <Button type="submit" disabled={isSubmitting}>
+                Generate
+              </Button>
+            )}
+          </>
+        )}
       </Form>
     );
   };

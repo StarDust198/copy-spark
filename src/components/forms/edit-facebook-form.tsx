@@ -1,5 +1,6 @@
 "use client";
 
+import { ReactNode } from "react";
 import {
   FacebookAdForm,
   facebookAdRequestSchema,
@@ -14,12 +15,14 @@ export function EditGenerationFacebookForm({
   model,
   disabled,
   onStop,
+  error,
   onSubmit,
 }: {
   input: unknown;
   model: string;
   disabled: boolean;
   onStop?: () => void;
+  error?: ReactNode;
   onSubmit: (fields: FacebookAdForm) => void | Promise<void>;
 }) {
   const parsed = facebookAdRequestSchema.safeParse(input);
@@ -28,6 +31,7 @@ export function EditGenerationFacebookForm({
     <FacebookFormWithActions
       disabled={disabled}
       onStop={onStop}
+      error={error}
       defaultValues={parsed.success ? { ...parsed.data, model } : { model }}
       onSubmit={onSubmit}
     />

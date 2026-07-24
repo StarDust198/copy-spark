@@ -144,6 +144,7 @@ export function GenerationStreamer({
 
   useRegisterGenerationController({
     isStreaming: isRunning,
+    hasError,
     stop: handleStop,
     editRegenerate: handleRegenerate,
   });
@@ -197,8 +198,6 @@ export function GenerationStreamer({
     return (
       <Loader
         title="Generating..."
-        // The dialog owns Stop while it is open — the copy underneath would sit
-        // behind the backdrop anyway.
         action={
           dialogTarget ? undefined : (
             <Button variant="outline" onClick={handleStop}>

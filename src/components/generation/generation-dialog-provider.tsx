@@ -27,6 +27,7 @@ export type GenerationDialogTarget = {
 // `GenerationResult` for `GenerationStreamer` while the dialog stays put.
 export type GenerationController = {
   isStreaming: boolean;
+  hasError: boolean;
   stop?: () => void;
   editRegenerate: (fields: EditGenerationFormValues) => void | Promise<void>;
 };
@@ -46,6 +47,7 @@ type GenerationDialogState = {
   target: GenerationDialogTarget | null;
   isStreaming: boolean;
   hasController: boolean;
+  hasError: boolean;
 };
 
 // Two contexts, deliberately: the actions object is stable for as long as the route
@@ -88,7 +90,7 @@ export function useRegisterGenerationController(
   controller: GenerationController,
 ) {
   const { registerController } = useGenerationDialogActions();
-  const { isStreaming } = controller;
+  const { isStreaming, hasError } = controller;
 
   const controllerRef = useRef(controller);
 
@@ -99,12 +101,13 @@ export function useRegisterGenerationController(
   useEffect(() => {
     registerController({
       isStreaming,
+      hasError,
       stop: () => controllerRef.current.stop?.(),
       editRegenerate: (fields) => controllerRef.current.editRegenerate(fields),
     });
 
     return () => registerController(null);
-  }, [isStreaming, registerController]);
+  }, [isStreaming, hasError, registerController]);
 }
 
 export function GenerationDialogProvider({
@@ -127,6 +130,7 @@ export function GenerationDialogProvider({
   const [controllerState, setControllerState] = useState({
     isStreaming: false,
     hasController: false,
+    hasError: false,
   });
   const controllerRef = useRef<GenerationController | null>(null);
 
@@ -151,6 +155,7 @@ export function GenerationDialogProvider({
         setControllerState({
           isStreaming: controller?.isStreaming ?? false,
           hasController: controller !== null,
+          hasError: controller?.hasError ?? false,
         });
       },
       stop: () => controllerRef.current?.stop?.(),

@@ -29,7 +29,11 @@ export function GenerationPoller({
     useRegenerateGeneration(generationId);
   const router = useRouter();
 
-  useRegisterGenerationController({ isStreaming: false, editRegenerate });
+  useRegisterGenerationController({
+    isStreaming: false,
+    hasError: false,
+    editRegenerate,
+  });
   const [refreshCount, setRefreshCount] = useState(0);
   const [canRegenerate, setCanRegenerate] = useState(false);
 

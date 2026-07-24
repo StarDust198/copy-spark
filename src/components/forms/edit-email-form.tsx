@@ -1,5 +1,6 @@
 "use client";
 
+import { ReactNode } from "react";
 import {
   EmailSubjectForm,
   emailSubjectRequestSchema,
@@ -14,12 +15,14 @@ export function EditGenerationEmailForm({
   model,
   disabled,
   onStop,
+  error,
   onSubmit,
 }: {
   input: unknown;
   model: string;
   disabled: boolean;
   onStop?: () => void;
+  error?: ReactNode;
   onSubmit: (fields: EmailSubjectForm) => void | Promise<void>;
 }) {
   const parsed = emailSubjectRequestSchema.safeParse(input);
@@ -28,6 +31,7 @@ export function EditGenerationEmailForm({
     <EmailFormWithActions
       disabled={disabled}
       onStop={onStop}
+      error={error}
       defaultValues={parsed.success ? { ...parsed.data, model } : { model }}
       onSubmit={onSubmit}
     />

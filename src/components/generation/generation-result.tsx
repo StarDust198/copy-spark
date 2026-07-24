@@ -69,6 +69,7 @@ export function GenerationResult({
   // the provider rather than holding the one captured when it opened.
   useRegisterGenerationController({
     isStreaming: false,
+    hasError: false,
     editRegenerate: handleEditRegenerate,
   });
 

@@ -1,6 +1,8 @@
 "use client";
 
+import { AlertTriangle } from "lucide-react";
 import { EditGenerationForm } from "@/components/forms";
+import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import {
   Dialog,
   DialogContent,
@@ -17,7 +19,8 @@ import {
 // `openDialog` instead of rendering their own instance — an open dialog is what tells
 // the generation page the user arrived here through a form, so there can only be one.
 export function EditGenerationDialog() {
-  const { target, isStreaming, hasController } = useGenerationDialogState();
+  const { target, isStreaming, hasController, hasError } =
+    useGenerationDialogState();
   const { closeDialog, stop, editRegenerate } = useGenerationDialogActions();
 
   // Unmounting between opens is what lets the form pick up fresh default values.
@@ -41,17 +44,23 @@ export function EditGenerationDialog() {
           </DialogDescription>
         </DialogHeader>
 
-        {/* Deliberately stays open past submit — `GenerationStreamer` closes it once
-            the first token lands, so the loader underneath is never revealed empty. */}
         <GenerationForm
           input={target.input}
           model={target.model}
-          // Swaps Generate for Stop while a run is in flight, and through the gap
-          // between an edit submit and the remounted streamer registering.
           disabled={isStreaming || !hasController}
-          // No handler means nothing live to abort, which renders Stop disabled
-          // rather than letting the click do nothing.
           onStop={hasController ? stop : undefined}
+          error={
+            hasError ? (
+              <Alert variant="destructive">
+                <AlertTriangle />
+                <AlertTitle>Couldn&apos;t generate</AlertTitle>
+                <AlertDescription>
+                  Something went wrong starting the generation. Try a different
+                  model or try again later.
+                </AlertDescription>
+              </Alert>
+            ) : undefined
+          }
           onSubmit={editRegenerate}
         />
       </DialogContent>

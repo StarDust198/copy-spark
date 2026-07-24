@@ -20,7 +20,13 @@ export function GenerationError({
   const { regenerate, editRegenerate, isPending } =
     useRegenerateGeneration(generationId);
 
-  useRegisterGenerationController({ isStreaming: false, editRegenerate });
+  // This view only renders for a persisted error (ERROR status, or COMPLETED
+  // output that no longer parses), so the dialog opened over it shows the error.
+  useRegisterGenerationController({
+    isStreaming: false,
+    hasError: true,
+    editRegenerate,
+  });
 
   return (
     <ErrorMessage
