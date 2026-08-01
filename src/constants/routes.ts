@@ -7,14 +7,6 @@ export const publicRoutes = {
     title: "Sign Up",
     url: "/signup",
   },
-  // home: {
-  //   title: "Homepage",
-  //   url: "/",
-  // },
-  // about: {
-  //   title: "About",
-  //   url: "/about",
-  // },
 } as const;
 
 export const privateRoutes = {
@@ -22,10 +14,6 @@ export const privateRoutes = {
     title: "Dashboard",
     url: "/dashboard",
   },
-  // settings: {
-  //   title: "Settings",
-  //   url: "/settings",
-  // },
 } as const;
 
 export const routes = {

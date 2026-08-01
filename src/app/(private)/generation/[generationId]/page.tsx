@@ -97,5 +97,9 @@ export default async function Page(
         />
       );
     }
+
+    default: {
+      return null;
+    }
   }
 }

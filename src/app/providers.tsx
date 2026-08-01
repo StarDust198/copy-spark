@@ -13,7 +13,21 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   const queryClient = getQueryClient();
 
   return (
-    <ClerkProvider>
+    <ClerkProvider
+      appearance={{
+        theme: "simple",
+        variables: {
+          colorPrimary: "var(--primary)",
+          colorBackground: "var(--sidebar)",
+          colorForeground: "var(--foreground)",
+          colorMutedForeground: "var(--muted-foreground)",
+          colorInput: "var(--input)",
+          colorBorder: "var(--border)",
+          borderRadius: "var(--radius)",
+          fontFamily: "inherit",
+        },
+      }}
+    >
       <QueryClientProvider client={queryClient}>
         <ThemeProvider
           attribute="class"
