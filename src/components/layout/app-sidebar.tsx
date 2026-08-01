@@ -19,11 +19,6 @@ import {
 } from "@/components/ui/sidebar";
 import { Show, SignOutButton } from "@clerk/nextjs";
 import {
-  ArrowRightEndOnRectangleIcon,
-  ArrowRightStartOnRectangleIcon,
-  UserPlusIcon,
-} from "@heroicons/react/24/outline";
-import {
   privateRoutes,
   publicRoutes,
   RouteData,
@@ -41,8 +36,11 @@ import {
 import {
   EllipsisVertical,
   LayoutDashboardIcon,
+  LogInIcon,
+  LogOutIcon,
   Pencil,
   Trash2,
+  UserPlusIcon,
 } from "lucide-react";
 import { useDeleteGeneration } from "@/lib/query/use-generation-hooks";
 import { RenameGenerationDialog } from "./rename-generation-dialog";
@@ -59,7 +57,7 @@ export type AppSidebarProps = {
 };
 
 const routeIconsMap: Record<RouteKey, ReactNode> = {
-  signin: <ArrowRightEndOnRectangleIcon />,
+  signin: <LogInIcon />,
   signup: <UserPlusIcon />,
   dashboard: <LayoutDashboardIcon />,
 };
@@ -137,7 +135,7 @@ export function AppSidebar() {
                     render={
                       <SignOutButton>
                         <button className="cursor-pointer">
-                          <ArrowRightStartOnRectangleIcon />
+                          <LogOutIcon />
 
                           <span>{SIGN_OUT_TITLE}</span>
                         </button>
