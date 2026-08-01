@@ -17,7 +17,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { Show, SignOutButton } from "@clerk/nextjs";
+import { Show, SignOutButton, useAuth } from "@clerk/nextjs";
 import {
   privateRoutes,
   publicRoutes,
@@ -67,7 +67,11 @@ export function AppSidebar() {
   const params = useParams();
   const router = useRouter();
   const { state } = useSidebar();
-  const { data: generations, isLoading } = useQuery(generationOptions());
+  const { isSignedIn } = useAuth();
+  const { data: generations, isLoading } = useQuery({
+    ...generationOptions(),
+    enabled: isSignedIn,
+  });
 
   const deleteChatMutation = useDeleteGeneration();
 
