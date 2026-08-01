@@ -53,39 +53,35 @@ export default async function Page({ params }: PageProps<"/new/[templateId]">) {
     CreateGenerationForm[parsedTemplateId.data];
 
   return (
-    <PageContent>
-      <GenerationFormWrapper
-        title={
-          <>
-            <Tooltip>
-              <TooltipTrigger>
-                <Link
-                  href="/dashboard"
-                  className={buttonVariants({
-                    variant: "ghost",
-                    size: "icon-lg",
-                  })}
-                >
-                  <CircleChevronLeft />
-                </Link>
-              </TooltipTrigger>
+    <GenerationFormWrapper
+      title={
+        <>
+          <Tooltip>
+            <TooltipTrigger>
+              <Link
+                href="/dashboard"
+                className={buttonVariants({
+                  variant: "ghost",
+                  size: "icon-lg",
+                })}
+              >
+                <CircleChevronLeft />
+              </Link>
+            </TooltipTrigger>
 
-              <TooltipContent>
-                <p>Back to templates</p>
-              </TooltipContent>
-            </Tooltip>
+            <TooltipContent>
+              <p>Back to templates</p>
+            </TooltipContent>
+          </Tooltip>
 
-            <p>
-              Create a new{" "}
-              <span className="inline-block first-letter:lowercase">
-                {title}
-              </span>
-            </p>
-          </>
-        }
-      >
-        <CreateTemplateGenerationForm />
-      </GenerationFormWrapper>
-    </PageContent>
+          <p>
+            Create a new{" "}
+            <span className="inline-block first-letter:lowercase">{title}</span>
+          </p>
+        </>
+      }
+    >
+      <CreateTemplateGenerationForm />
+    </GenerationFormWrapper>
   );
 }

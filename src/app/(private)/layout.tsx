@@ -5,7 +5,7 @@ import { GenerationDialogProvider } from "@/components/generation/generation-dia
 // The dialog is hosted here rather than inside the generation page because every
 // edit-and-regenerate flips the row to PENDING and refreshes the route, which swaps
 // the page's status branch and would take a page-level dialog down with it.
-export default function PrivateLayout({ children }: { children: ReactNode }) {
+export default function Layout({ children }: { children: ReactNode }) {
   return (
     <GenerationDialogProvider>
       {children}

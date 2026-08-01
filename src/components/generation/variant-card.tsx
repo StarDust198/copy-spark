@@ -15,6 +15,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/cn";
+import { Skeleton } from "../ui/skeleton";
 
 type VariantCardProps = {
   index: number;
@@ -81,6 +82,26 @@ export function VariantCard({
             title={field.label}
             content={variant[field.key]}
           />
+        ))}
+      </CardContent>
+    </Card>
+  );
+}
+
+const fieldDummies = Array.from({ length: 3 });
+
+export function VariantCardSkeleton() {
+  return (
+    <Card className="w-full max-w-64">
+      <CardHeader>
+        <Skeleton className="h-6 w-32" />
+      </CardHeader>
+      <CardContent className="flex flex-col gap-3">
+        {fieldDummies.map((_, index) => (
+          <div key={index} className="flex flex-col gap-1.5">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-10 w-full" />
+          </div>
         ))}
       </CardContent>
     </Card>

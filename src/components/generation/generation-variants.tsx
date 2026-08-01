@@ -15,6 +15,14 @@ type GenerationVariantsProps = {
   onRetry?: () => void;
 };
 
+export function GenerationVariantsList({ children }: { children: ReactNode }) {
+  return (
+    <div className="flex gap-6 flex-wrap justify-center items-start shrink-0">
+      {children}
+    </div>
+  );
+}
+
 export function GenerationVariants({
   variants,
   fields,
@@ -38,7 +46,7 @@ export function GenerationVariants({
     <div className="flex w-full flex-col items-center gap-6">
       {actions}
 
-      <div className="flex gap-6 flex-wrap justify-center items-start shrink-0">
+      <GenerationVariantsList>
         {variants.map((variant, index) => (
           <VariantCard
             key={index}
@@ -50,7 +58,7 @@ export function GenerationVariants({
             onToggleFavorite={() => onToggleFavorite(index)}
           />
         ))}
-      </div>
+      </GenerationVariantsList>
     </div>
   );
 }
