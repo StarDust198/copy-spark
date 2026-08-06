@@ -19,7 +19,7 @@ export const emailSubjectRequestSchema = z.object({
 export type EmailSubjectRequest = z.infer<typeof emailSubjectRequestSchema>;
 
 export const emailSubjectFormSchema = emailSubjectRequestSchema.extend({
-  model: z.string().min(1),
+  model: z.string().min(1, "This field is required"),
 });
 
 export type EmailSubjectForm = z.infer<typeof emailSubjectFormSchema>;

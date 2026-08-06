@@ -23,7 +23,7 @@ export type ProductDescriptionRequest = z.infer<
 
 export const productDescriptionFormSchema =
   productDescriptionRequestSchema.extend({
-    model: z.string().min(1),
+    model: z.string().min(1, "This field is required"),
   });
 
 export type ProductDescriptionForm = z.infer<

@@ -8,7 +8,7 @@ import { SelectItem } from "../ui/select";
 import { SelectField } from "../fields/select-field";
 import { InputField } from "../fields/input-field";
 import { TextareaField } from "../fields/textarea-field";
-import { ModelSelectorField } from "../fields/model-selector-field";
+import { ModelSelectorField } from "../generation/model-selector-field";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   FacebookAdForm,

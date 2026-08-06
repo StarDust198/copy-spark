@@ -44,3 +44,8 @@ export const MODELS = [
     provider: "amazon-bedrock",
   },
 ] as const;
+
+export type Model = (typeof MODELS)[number];
+
+// Doubles as the models.dev logo slug, so it has to stay in their vocabulary.
+export type ModelProvider = Model["provider"];

@@ -16,7 +16,7 @@ export const facebookAdRequestSchema = z.object({
 export type FacebookAdRequest = z.infer<typeof facebookAdRequestSchema>;
 
 export const facebookAdFormSchema = facebookAdRequestSchema.extend({
-  model: z.string().min(1),
+  model: z.string().min(1, "This field is required"),
 });
 
 export type FacebookAdForm = z.infer<typeof facebookAdFormSchema>;

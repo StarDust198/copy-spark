@@ -5,7 +5,7 @@ import { ReactNode } from "react";
 import z from "zod";
 import { TextareaField } from "../fields/textarea-field";
 import { SelectField } from "../fields/select-field";
-import { ModelSelectorField } from "../fields/model-selector-field";
+import { ModelSelectorField } from "../generation/model-selector-field";
 import { Tone } from "@/constants/tone";
 import { SelectItem } from "../ui/select";
 import { zodResolver } from "@hookform/resolvers/zod";
