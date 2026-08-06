@@ -9,7 +9,7 @@ export function GenerationFormWrapper({
   children: ReactNode;
 }) {
   return (
-    <Card className="w-full max-w-96">
+    <Card className="w-full max-w-96 shrink-0">
       <CardHeader className="gap-2">
         <CardTitle className="flex items-center gap-1">{title}</CardTitle>
       </CardHeader>

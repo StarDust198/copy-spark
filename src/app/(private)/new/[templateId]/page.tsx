@@ -12,7 +12,6 @@ import {
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import z from "zod";
-import { PageContent } from "@/components/layout/page-content";
 
 export async function generateMetadata({
   params,

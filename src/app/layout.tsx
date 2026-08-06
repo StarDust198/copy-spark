@@ -7,6 +7,7 @@ import { AppSidebar } from "@/components/layout/app-sidebar";
 import { SidebarInset } from "@/components/ui/sidebar";
 import { AppHeader } from "@/components/layout/app-header";
 import { Separator } from "@base-ui/react";
+import { PageContent } from "@/components/layout/page-content";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -57,7 +58,7 @@ export default function RootLayout({
             <Separator />
 
             <div className="flex-1 min-h-0 max-w-5xl w-full mx-auto p-4">
-              {children}
+              <PageContent>{children}</PageContent>
             </div>
           </SidebarInset>
         </Providers>

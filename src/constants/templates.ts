@@ -11,6 +11,12 @@ import {
   facebookAdVariantSchema,
 } from "@/schemas/facebook-schema";
 import { getOutputSchema } from "@/schemas/generation";
+import {
+  MailOpenIcon,
+  MegaphoneIcon,
+  ShoppingBagIcon,
+  type LucideIcon,
+} from "lucide-react";
 import z from "zod";
 
 export type TemplateId = (typeof TemplateId)[keyof typeof TemplateId];
@@ -36,6 +42,7 @@ function defineTemplate<
   title: string;
   description: string;
   example: string;
+  icon: LucideIcon;
   requestSchema: TRequest;
   variantSchema: TVariant;
   fields: { label: string; key: keyof z.infer<TVariant> & string }[];
@@ -64,6 +71,7 @@ export const Template = {
     title: "Facebook / Instagram ad",
     description: "Short, punchy ad text with a hook and a call to action.",
     example: "Tired of yoga mats that slip? Meet the last mat you'll ever buy",
+    icon: MegaphoneIcon,
     requestSchema: facebookAdRequestSchema,
     variantSchema: facebookAdVariantSchema,
     fields: [
@@ -78,6 +86,7 @@ export const Template = {
     description:
       "Subject lines that get your emails opened instead of deleted.",
     example: "You left something behind (and it misses you)",
+    icon: MailOpenIcon,
     requestSchema: emailSubjectRequestSchema,
     variantSchema: emailSubjectVariantSchema,
     fields: [
@@ -92,6 +101,7 @@ export const Template = {
       "Persuasive copy for online store listings — features turned into benefits.",
     example:
       "Crafted from cork so grippy you'll hold poses you didn't know you could.",
+    icon: ShoppingBagIcon,
     requestSchema: productDescriptionRequestSchema,
     variantSchema: productDescriptionVariantSchema,
     fields: [{ label: "Description", key: "description" }],

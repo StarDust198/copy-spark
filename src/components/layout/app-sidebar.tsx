@@ -129,25 +129,7 @@ export function AppSidebar() {
             <SidebarMenu>
               <Show when="signed-out">{renderRouteGroup(publicRoutes)}</Show>
 
-              <Show when="signed-in">
-                {renderRouteGroup(privateRoutes)}
-
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    tooltip={SIGN_OUT_TITLE}
-                    className="cursor-pointer"
-                    render={
-                      <SignOutButton>
-                        <button className="cursor-pointer">
-                          <LogOutIcon />
-
-                          <span>{SIGN_OUT_TITLE}</span>
-                        </button>
-                      </SignOutButton>
-                    }
-                  />
-                </SidebarMenuItem>
-              </Show>
+              <Show when="signed-in">{renderRouteGroup(privateRoutes)}</Show>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -157,11 +139,9 @@ export function AppSidebar() {
             <SidebarGroupLabel>Generations</SidebarGroupLabel>
 
             <SidebarGroupContent className="flex flex-col grow min-h-0 gap-0.5 px-1 overflow-hidden group-data-[state=expanded]:hover:overflow-y-auto">
-              {isLoading ? (
-                <div className="text-muted-foreground text-sm">Loading...</div>
-              ) : (
+              {generations?.length ? (
                 <SidebarMenu>
-                  {generations?.map((generation) => {
+                  {generations.map((generation) => {
                     const chatUrl = `/generation/${generation.id}`;
                     const isActiveChat = pathname === chatUrl;
 
@@ -170,7 +150,6 @@ export function AppSidebar() {
                         key={generation.id}
                         className="flex items-center gap-2 justify-between"
                       >
-                        {/* TODO: Fix double tooltip on collapsed sidebar state  */}
                         <SidebarMenuButton
                           tooltip={generation.title}
                           isActive={isActiveChat}
@@ -221,6 +200,10 @@ export function AppSidebar() {
                     );
                   })}
                 </SidebarMenu>
+              ) : (
+                <div className="text-muted-foreground text-sm italic px-1">
+                  {isLoading ? "Loading..." : "Empty"}
+                </div>
               )}
             </SidebarGroupContent>
           </SidebarGroup>

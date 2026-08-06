@@ -44,8 +44,8 @@ export function CopyableSection({ title, content }: CopyableSectionProps) {
 
   return (
     <div className="group flex flex-col gap-1.5">
-      <div className="flex items-center">
-        <h3 className="text-sm font-medium">{title}</h3>
+      <div className="flex items-baseline">
+        <h3 className="font-medium text-muted-foreground">{title}</h3>
 
         {/* Force the tooltip open while `copied` is set so it stays visible
             for the full 3s, then fall back to hover state afterwards. */}
@@ -73,7 +73,7 @@ export function CopyableSection({ title, content }: CopyableSectionProps) {
         </Tooltip>
       </div>
 
-      <p className="text-sm text-muted-foreground">{content}</p>
+      <p>{content}</p>
     </div>
   );
 }
