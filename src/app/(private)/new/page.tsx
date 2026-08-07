@@ -9,6 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Template } from "@/constants/templates";
+import { capitalizeFirstLetter } from "@/lib/capitalize-first-letter";
 import Link from "next/link";
 
 const templates = Object.values(Template);
@@ -33,7 +34,7 @@ export default function Page() {
                   <CardTitle className="flex items-center gap-2">
                     <Icon className="text-primary w-3 h-3 shrink-0" />
 
-                    <p>{template.title}</p>
+                    <p>{capitalizeFirstLetter(template.title)}</p>
                   </CardTitle>
 
                   <CardDescription>{template.description}</CardDescription>

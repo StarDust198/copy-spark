@@ -116,9 +116,10 @@ export function GenerationDialogProvider({
   children: ReactNode;
 }) {
   // The provider spans the whole private group, so a target has to remember which
-  // route opened it — otherwise an open dialog would follow the user to the dashboard.
-  // Tagging and deriving beats clearing it in an effect: a regenerate refreshes the
-  // route without touching the pathname, which is exactly the case that must survive.
+  // route opened it — otherwise an open dialog would follow the user to the initial
+  // page. Tagging and deriving beats clearing it in an effect: a regenerate refreshes
+  // the route without touching the pathname, which is exactly the case that must
+  // survive.
   const pathname = usePathname();
 
   const [storedTarget, setStoredTarget] = useState<

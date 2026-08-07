@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { GenerationFormWrapper } from "@/components/generation/generation-form-wrapper";
 import { CreateGenerationForm } from "@/components/forms";
 import { Template, TemplateId } from "@/constants/templates";
+import { capitalizeFirstLetter } from "@/lib/capitalize-first-letter";
 import { CircleChevronLeft } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import {
@@ -27,7 +28,7 @@ export async function generateMetadata({
     : {};
 
   return {
-    title,
+    title: title && capitalizeFirstLetter(title),
     description,
   };
 }
@@ -58,7 +59,7 @@ export default async function Page({ params }: PageProps<"/new/[templateId]">) {
           <Tooltip>
             <TooltipTrigger>
               <Link
-                href="/dashboard"
+                href="/new"
                 className={buttonVariants({
                   variant: "ghost",
                   size: "icon-lg",
@@ -73,10 +74,7 @@ export default async function Page({ params }: PageProps<"/new/[templateId]">) {
             </TooltipContent>
           </Tooltip>
 
-          <p>
-            Create a new{" "}
-            <span className="inline-block first-letter:lowercase">{title}</span>
-          </p>
+          <p>New {title}</p>
         </>
       }
     >

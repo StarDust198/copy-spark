@@ -39,6 +39,9 @@ function defineTemplate<
   TVariant extends z.ZodObject,
 >(config: {
   id: TTemplateId;
+  // Stored in its mid-sentence form ("email subject lines", but "Facebook /
+  // Instagram ad" — the capital there is the proper noun, not sentence case).
+  // Render standalone titles through `capitalizeFirstLetter`.
   title: string;
   description: string;
   example: string;
@@ -82,7 +85,7 @@ export const Template = {
   }),
   [TemplateId.emailSubject]: defineTemplate({
     id: TemplateId.emailSubject,
-    title: "Email subject lines",
+    title: "email subject lines",
     description:
       "Subject lines that get your emails opened instead of deleted.",
     example: "You left something behind (and it misses you)",
@@ -96,7 +99,7 @@ export const Template = {
   }),
   [TemplateId.productDescription]: defineTemplate({
     id: TemplateId.productDescription,
-    title: "Product description",
+    title: "product description",
     description:
       "Persuasive copy for online store listings — features turned into benefits.",
     example:

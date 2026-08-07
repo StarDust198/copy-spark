@@ -10,7 +10,7 @@ export default function NotFound() {
       <p>Page not found</p>
 
       <Link
-        href="/dashboard"
+        href="/new"
         className={buttonVariants({
           variant: "ghost",
         })}

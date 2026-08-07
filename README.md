@@ -25,9 +25,11 @@ Anthropic, Mistral, and Amazon models are selectable per generation (see
 
 ## Screenshots
 
-| Light                                                            | Dark                                                           |
-| ---------------------------------------------------------------- | -------------------------------------------------------------- |
-| ![Dashboard in light mode](docs/screenshots/light-dashboard.png) | ![Dashboard in dark mode](docs/screenshots/dark-dashboard.png) |
+| Light                                                                                  | Dark                                                                                 |
+| -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| ![Template picker in light mode](docs/screenshots/light-new-generation.png)            | ![Template picker in dark mode](docs/screenshots/dark-new-generation.png)            |
+| ![Email subject lines form in light mode](docs/screenshots/light-new-email.png)        | ![Email subject lines form in dark mode](docs/screenshots/dark-new-email.png)        |
+| ![Generated variants in light mode](docs/screenshots/light-generation.png)             | ![Generated variants in dark mode](docs/screenshots/dark-generation.png)             |
 
 ## Stack
 
@@ -77,8 +79,8 @@ NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
 CLERK_SECRET_KEY=
 NEXT_PUBLIC_CLERK_SIGN_IN_URL=/signin
 NEXT_PUBLIC_CLERK_SIGN_UP_URL=/signup
-NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL=/dashboard
-NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL=/dashboard
+NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL=/new
+NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL=/new
 ```
 
 Apply the database schema and start the dev server:
@@ -93,8 +95,9 @@ Other scripts: `pnpm build`, `pnpm start`, `pnpm lint`.
 ## Folder structure
 
 - `src`
-  - `app` — App Router: `(public)` (sign-in/sign-up), `(private)` (dashboard,
-    generation history, new generation), and `api/generate/[templateId]`.
+  - `app` — App Router: `(public)` (sign-in/sign-up), `(private)` (`new` —
+    template picker plus the per-template form at `new/[templateId]`, and
+    `generation` — history), and `api/generate/[templateId]`.
     The root `page.tsx` currently just redirects to `/signin` — a public
     landing page is coming.
   - `components` — `ui` (shadcn on Base UI), plus `generation`, `forms`,
@@ -110,6 +113,8 @@ Other scripts: `pnpm build`, `pnpm start`, `pnpm lint`.
       and a per-template prompt builder that safe-parses its input.
     - `prisma.ts` — Prisma client singleton on `@prisma/adapter-pg`.
     - `cn.ts` — `clsx` + `tailwind-merge` class helper.
+    - `capitalize-first-letter.ts` — template titles are stored in their
+      mid-sentence form, so standalone headings raise the first letter.
   - `schemas`, `constants`, `hooks`, `styles`.
   - `proxy.ts` — Clerk middleware.
 - `prisma` — schema and migrations. `Generation.input` / `Generation.output`

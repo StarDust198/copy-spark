@@ -57,7 +57,7 @@ export type AppSidebarProps = {
 const routeIconsMap: Record<RouteKey, ReactNode> = {
   signin: <LogInIcon />,
   signup: <UserPlusIcon />,
-  dashboard: <LayoutDashboardIcon />,
+  new: <LayoutDashboardIcon />,
 };
 
 export function AppSidebar() {
@@ -86,7 +86,7 @@ export function AppSidebar() {
 
     if (paramsGenerationId !== generationId) return;
 
-    router.push("/dashboard");
+    router.push("/new");
   };
 
   const renderRouteGroup = (

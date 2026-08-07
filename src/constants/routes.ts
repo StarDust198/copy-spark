@@ -10,9 +10,9 @@ export const publicRoutes = {
 } as const;
 
 export const privateRoutes = {
-  dashboard: {
-    title: "Dashboard",
-    url: "/dashboard",
+  new: {
+    title: "New generation",
+    url: "/new",
   },
 } as const;
 
