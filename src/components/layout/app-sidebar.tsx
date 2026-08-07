@@ -17,13 +17,12 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { Show, SignOutButton, useAuth } from "@clerk/nextjs";
+import { Show, useAuth } from "@clerk/nextjs";
 import {
   privateRoutes,
   publicRoutes,
   RouteData,
   RouteKey,
-  SIGN_OUT_TITLE,
 } from "@/constants/routes";
 import { useQuery } from "@tanstack/react-query";
 import { generationOptions } from "@/lib/query/generations-options";
@@ -37,7 +36,6 @@ import {
   EllipsisVertical,
   LayoutDashboardIcon,
   LogInIcon,
-  LogOutIcon,
   Pencil,
   Trash2,
   UserPlusIcon,
@@ -153,7 +151,7 @@ export function AppSidebar() {
                         <SidebarMenuButton
                           tooltip={generation.title}
                           isActive={isActiveChat}
-                          className="pr-2! group-hover/menu-item:pr-8! group-focus-within/menu-item:pr-8! group-has-aria-expanded/menu-item:pr-8!"
+                          className="pr-8! md:pr-2! md:group-hover/menu-item:pr-8! md:group-focus-within/menu-item:pr-8! md:group-has-aria-expanded/menu-item:pr-8!"
                           render={
                             <Link href={chatUrl}>
                               <TruncatedText tooltipDisabled={!isExpanded}>
