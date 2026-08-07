@@ -25,16 +25,13 @@ Anthropic, Mistral, and Amazon models are selectable per generation (see
 
 ## Screenshots
 
-| Light                                                                                  | Dark                                                                                 |
-| -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| ![Template picker in light mode](docs/screenshots/light-new-generation.png)            | ![Template picker in dark mode](docs/screenshots/dark-new-generation.png)            |
-| ![Email subject lines form in light mode](docs/screenshots/light-new-email.png)        | ![Email subject lines form in dark mode](docs/screenshots/dark-new-email.png)        |
-| ![Generated variants in light mode](docs/screenshots/light-generation.png)             | ![Generated variants in dark mode](docs/screenshots/dark-generation.png)             |
+| Light                                                                           | Dark                                                                          |
+| ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| ![Template picker in light mode](docs/screenshots/light-new-generation.png)     | ![Template picker in dark mode](docs/screenshots/dark-new-generation.png)     |
+| ![Email subject lines form in light mode](docs/screenshots/light-new-email.png) | ![Email subject lines form in dark mode](docs/screenshots/dark-new-email.png) |
+| ![Generated variants in light mode](docs/screenshots/light-generation.png)      | ![Generated variants in dark mode](docs/screenshots/dark-generation.png)      |
 
 ## Stack
-
-Versions are pinned intentionally — this is **not** the Next.js you may know from
-older docs (App Router with breaking changes).
 
 - [Next.js](https://nextjs.org) 16.2.4 — App Router
 - [React](https://react.dev) 19.2.4
@@ -59,9 +56,11 @@ cd copy-spark
 pnpm install
 ```
 
-Create your environment files with the following variables. The database URLs
-live in `.env` because `prisma.config.ts` loads only that file via `dotenv`;
-everything else is read by Next.js from `.env.local`.
+Create your environment files with the following variables. `DIRECT_URL` has to
+live in `.env` — `prisma.config.ts` loads only that file via `dotenv`. The rest
+of the split is convention: Next.js reads both files (`.env.local` wins on
+conflicts), and keeping the database URLs in `.env` puts them out of reach of
+`vercel env pull`, which overwrites `.env.local`.
 
 `.env`
 
