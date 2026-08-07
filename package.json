@@ -1,6 +1,6 @@
 {
-  "name": "starter-template",
-  "version": "env",
+  "name": "copy-spark",
+  "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -9,7 +9,6 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@ai-sdk/anthropic": "^4.0.12",
     "@ai-sdk/react": "^4.0.23",
     "@base-ui/react": "^1.4.1",
     "@clerk/nextjs": "^7.4.1",
@@ -27,7 +26,6 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "lucide-react": "^1.12.0",
-    "mathjs": "^15.2.0",
     "nanoid": "^5.1.11",
     "next": "16.2.4",
     "next-themes": "^0.4.6",

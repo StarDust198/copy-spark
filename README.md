@@ -4,6 +4,8 @@ An AI marketing copy generator built on the [Vercel AI SDK](https://ai-sdk.dev).
 Copy Spark turns a short brief about a product, audience, and tone into
 ready-to-use marketing copy, streamed variant by variant.
 
+**Live site:** https://copy-spark-198x.vercel.app/
+
 Models are addressed as plain `provider/model` strings and routed through the
 [Vercel AI Gateway](https://vercel.com/docs/ai-gateway) — Google, OpenAI,
 Anthropic, Mistral, and Amazon models are selectable per generation (see
@@ -21,6 +23,12 @@ Anthropic, Mistral, and Amazon models are selectable per generation (see
   (`PENDING` / `STREAMING` / `COMPLETED` / `ERROR`).
 - Light/dark theme.
 
+## Screenshots
+
+| Light                                                            | Dark                                                           |
+| ---------------------------------------------------------------- | -------------------------------------------------------------- |
+| ![Dashboard in light mode](docs/screenshots/light-dashboard.png) | ![Dashboard in dark mode](docs/screenshots/dark-dashboard.png) |
+
 ## Stack
 
 Versions are pinned intentionally — this is **not** the Next.js you may know from
@@ -28,7 +36,7 @@ older docs (App Router with breaking changes).
 
 - [Next.js](https://nextjs.org) 16.2.4 — App Router
 - [React](https://react.dev) 19.2.4
-- [AI SDK](https://ai-sdk.dev) (`ai`) 7 · `@ai-sdk/react` 4 · `@ai-sdk/anthropic` 4
+- [AI SDK](https://ai-sdk.dev) (`ai`) 7 · `@ai-sdk/react` 4
 - [TanStack Query](https://tanstack.com/query) 5 — client data fetching
 - [Prisma](https://www.prisma.io) 7 with `@prisma/adapter-pg` + `pg` — Postgres
 - [Clerk](https://clerk.com) 7 — authentication
@@ -39,12 +47,12 @@ older docs (App Router with breaking changes).
 
 ## Getting Started
 
-**Prerequisites:** Node.js, [pnpm](https://pnpm.io), a Postgres database, a
+**Prerequisites:** Node.js 20.9+, [pnpm](https://pnpm.io), a Postgres database, a
 [Clerk](https://clerk.com) application, and an
 [AI Gateway API key](https://vercel.com/docs/ai-gateway).
 
 ```bash
-git clone <your-repo-url> copy-spark
+git clone git@github.com:StarDust198/copy-spark.git copy-spark
 cd copy-spark
 pnpm install
 ```
@@ -87,17 +95,27 @@ Other scripts: `pnpm build`, `pnpm start`, `pnpm lint`.
 - `src`
   - `app` — App Router: `(public)` (sign-in/sign-up), `(private)` (dashboard,
     generation history, new generation), and `api/generate/[templateId]`.
+    The root `page.tsx` currently just redirects to `/signin` — a public
+    landing page is coming.
   - `components` — `ui` (shadcn on Base UI), plus `generation`, `forms`,
-    `fields`, `layout`, `themes`, and `ai-elements`.
-  - `lib` — server actions (`actions`), Prisma queries (`db`), prompt builders
-    (`prompts.ts`), TanStack Query options and hooks (`query`), and the Prisma
-    client (`prisma.ts`).
+    `fields`, `layout`, and `themes`.
+  - `lib`
+    - `actions` — server actions: the three per-template `create*Generation`
+      entry points plus update / get / delete, each scoped to the Clerk user.
+    - `db` — the only place Prisma is called; every query takes a `userId`
+      so ownership is enforced in one layer.
+    - `query` — TanStack Query client, query options, and the mutation hooks
+      the forms and generation UI use.
+    - `prompts.ts` — system prompt, the tone / length / email-goal fragments,
+      and a per-template prompt builder that safe-parses its input.
+    - `prisma.ts` — Prisma client singleton on `@prisma/adapter-pg`.
+    - `cn.ts` — `clsx` + `tailwind-merge` class helper.
   - `schemas`, `constants`, `hooks`, `styles`.
-  - `proxy.ts` — Clerk middleware (Next.js 16 renames `middleware` → `proxy`).
+  - `proxy.ts` — Clerk middleware.
 - `prisma` — schema and migrations. `Generation.input` / `Generation.output`
   are `Json` columns rather than per-template tables — a deliberate v1 choice,
   since every template has a different shape.
 
 ## License
 
-MIT © Sergey Zhilinsky
+MIT © Sergey Zhilinsky — see [LICENSE](LICENSE).
