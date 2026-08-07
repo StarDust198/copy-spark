@@ -20,6 +20,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  // Without this, relative metadata URLs resolve against VERCEL_URL — the
+  // per-deployment hostname — so og:image would change on every deploy.
+  metadataBase: new URL("https://copy-spark-198x.vercel.app"),
   title: {
     default: "CopySpark — AI marketing copy generator",
     template: "%s · CopySpark", // child pages: "History · CopySpark"
@@ -30,10 +33,14 @@ export const metadata: Metadata = {
     title: "CopySpark — AI marketing copy generator",
     description:
       "Pick a template, describe your product, get 5 ready-to-use copy variants. Built with Next.js and the Vercel AI SDK.",
-    // images: "",
-    // url: "",
+    url: "/",
     type: "website",
     siteName: "CopySpark",
+  },
+  // X renders the small square card unless the type is stated, even with a
+  // valid og:image; it falls back to og:image, so no twitter-image is needed.
+  twitter: {
+    card: "summary_large_image",
   },
 };
 
