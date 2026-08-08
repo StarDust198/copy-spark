@@ -8,7 +8,7 @@ export default clerkMiddleware(async (auth, req) => {
   const { userId } = await auth();
 
   if (userId && (isPublicRoute(req) || isRootRoute(req))) {
-    return NextResponse.redirect(new URL("/hew", req.url));
+    return NextResponse.redirect(new URL("/new", req.url));
   }
 
   if (!isPublicRoute(req)) {
